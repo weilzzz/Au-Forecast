@@ -3,11 +3,13 @@ from __future__ import annotations
 import argparse
 import json
 import threading
+import time
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+from gold_app.market_data import collect_live_quotes, is_metals_market_open
 from gold_app.service import generate_analysis, load_latest
 
 
@@ -17,6 +19,12 @@ analysis_lock = threading.Lock()
 analysis_condition = threading.Condition(analysis_lock)
 analysis_cache: dict | None = None
 analysis_refreshing = False
+quote_lock = threading.Lock()
+quote_condition = threading.Condition(quote_lock)
+quote_cache: dict | None = None
+quote_cache_monotonic = 0.0
+quote_refreshing = False
+QUOTE_INTERVAL_SECONDS = 300
 
 
 def get_analysis(refresh: bool = False) -> dict:
@@ -54,6 +62,80 @@ def _public_error(code: str) -> dict:
         "refresh_failed": "Refresh failed. Please try again later.",
     }
     return {"error": code, "message": messages[code]}
+
+
+def _quote_fallback() -> dict:
+    analysis = get_analysis(refresh=False)
+    quotes = {}
+    for item in analysis.get("market_quotes", []):
+        key = "comex_gc" if item.get("symbol") == "COMEX GC" else "xauusd"
+        quotes[key] = {
+            **item,
+            "previous_close": None,
+            "previous_close_note": "实时行情暂不可用",
+            "open": None,
+            "day_high": None,
+            "day_low": None,
+            "change": None,
+            "market_open": is_metals_market_open(),
+            "stale": True,
+        }
+    return {
+        "schema_version": "1.0.0",
+        "interval_seconds": QUOTE_INTERVAL_SECONDS,
+        "market_open": is_metals_market_open(),
+        "fetched_at": analysis.get("market_as_of"),
+        "quotes": quotes,
+        "errors": {"live": "Live quotes are temporarily unavailable."},
+        "stale": True,
+    }
+
+
+def get_live_quotes(force: bool = False) -> dict:
+    global quote_cache, quote_cache_monotonic, quote_refreshing
+    now_monotonic = time.monotonic()
+    market_open = is_metals_market_open()
+    with quote_condition:
+        cache_fresh = (
+            quote_cache is not None
+            and now_monotonic - quote_cache_monotonic < QUOTE_INTERVAL_SECONDS
+        )
+        if cache_fresh or (quote_cache is not None and not market_open):
+            return quote_cache
+        if not market_open:
+            quote_cache = _quote_fallback()
+            quote_cache_monotonic = now_monotonic
+            return quote_cache
+        if quote_refreshing:
+            quote_condition.wait_for(lambda: not quote_refreshing)
+            if quote_cache is not None:
+                return quote_cache
+        quote_refreshing = True
+    try:
+        result = collect_live_quotes()
+        if not result.get("quotes"):
+            raise RuntimeError("No live quotes are available")
+    except Exception:
+        with quote_condition:
+            quote_refreshing = False
+            if quote_cache is None:
+                quote_cache = _quote_fallback()
+                quote_cache_monotonic = time.monotonic()
+            quote_condition.notify_all()
+            return quote_cache
+    with quote_condition:
+        quote_cache = result
+        quote_cache_monotonic = time.monotonic()
+        quote_refreshing = False
+        quote_condition.notify_all()
+        return quote_cache
+
+
+def quote_refresh_loop(stop_event: threading.Event) -> None:
+    while not stop_event.is_set():
+        if is_metals_market_open():
+            get_live_quotes(force=True)
+        stop_event.wait(QUOTE_INTERVAL_SECONDS)
 
 
 class AurumHandler(SimpleHTTPRequestHandler):
@@ -100,6 +182,9 @@ class AurumHandler(SimpleHTTPRequestHandler):
                         HTTPStatus.SERVICE_UNAVAILABLE,
                     )
             return
+        if path == "/api/quotes":
+            self._json(get_live_quotes())
+            return
         super().do_GET()
 
     def do_POST(self) -> None:
@@ -135,12 +220,22 @@ def main() -> None:
         )
         return
     server = ThreadingHTTPServer((args.host, args.port), AurumHandler)
+    quote_stop_event = threading.Event()
+    quote_thread = threading.Thread(
+        target=quote_refresh_loop,
+        args=(quote_stop_event,),
+        name="aurum-live-quotes",
+        daemon=True,
+    )
+    quote_thread.start()
     print(f"Aurum Signal running at http://{args.host}:{args.port}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
+        quote_stop_event.set()
+        quote_thread.join(timeout=2)
         server.server_close()
 
 

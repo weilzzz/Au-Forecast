@@ -80,6 +80,23 @@
 
 `XAU/USD` 表示国际现货黄金兑美元的场外报价；`COMEX GC` 表示纽约商品交易所黄金期货。两者不应混为同一指标。
 
+### GET /api/quotes
+
+主页实时行情使用独立接口，不触发模型重算或历史记录写入。服务端在金属市场开市时每 `300` 秒刷新一次，并合并并发请求。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `interval_seconds` | integer | 前端建议轮询周期，当前为 `300` |
+| `market_open` | boolean | 按美国东部金属交易时段判断是否开市 |
+| `fetched_at` | datetime | 服务端最近成功采集时间 |
+| `quotes.xauusd` | object | 国际现货黄金实时价；场外市场无统一官方昨收 |
+| `quotes.comex_gc` | object | COMEX GC 连续主力的5分钟行情 |
+| `previous_close` | number/null | 昨收；XAUUSD 当前为 `null` 并提供说明 |
+| `open` | number/null | 当前交易日首次可用5分钟开盘价 |
+| `day_high` | number/null | 当前交易日5分钟数据最高价 |
+| `day_low` | number/null | 当前交易日5分钟数据最低价 |
+| `change_percent` | number/null | 相对昨收涨跌幅 |
+
 ## 4. factors[]
 
 数组固定包含 `fed`、`stocks`、`fund_flow`、`central_bank` 四项。

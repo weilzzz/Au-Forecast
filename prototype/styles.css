@@ -227,6 +227,7 @@ button, a { font: inherit; }
 
 .market-quotes { gap: 10px; }
 .quote {
+  position: relative;
   gap: 24px;
   min-width: 336px;
   padding: 10px 13px;
@@ -234,6 +235,7 @@ button, a { font: inherit; }
   border-radius: 13px;
   background: rgba(255,255,255,.018);
 }
+.quote:focus { outline: 1px solid rgba(244,191,79,.45); outline-offset: 2px; }
 .quote.active {
   border-color: rgba(244,191,79,.17);
   background: linear-gradient(145deg, rgba(47,32,61,.6), rgba(18,14,25,.65));
@@ -244,6 +246,42 @@ button, a { font: inherit; }
 .quote .ticker-price { margin-left: auto; }
 .quote .ticker-price strong { font-size: 25px; }
 .quote .ticker-price > span { display: none; }
+.quote-tooltip {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 9px);
+  left: 0;
+  width: 310px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px 14px;
+  padding: 13px 14px;
+  border: 1px solid var(--line-bright);
+  border-radius: 13px;
+  background: rgba(14,10,22,.97);
+  box-shadow: 0 16px 38px rgba(0,0,0,.42);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-5px);
+  transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
+}
+.quote:hover .quote-tooltip, .quote:focus .quote-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.quote-tooltip div { min-width: 0; }
+.quote-tooltip span, .quote-tooltip strong { display: block; }
+.quote-tooltip span { color: var(--muted); font-size: 8px; }
+.quote-tooltip strong {
+  margin-top: 4px;
+  color: var(--text);
+  font: 500 10px/1.35 "DM Mono", monospace;
+  overflow-wrap: anywhere;
+}
+.quote-tooltip-wide { grid-column: 1 / -1; }
+.quote-updated .ticker-price strong { animation: quotePulse .8s ease; }
 .info-button {
   width: 15px;
   height: 15px;
@@ -1002,6 +1040,10 @@ footer span { font-family: "DM Mono", monospace; white-space: nowrap; }
 @keyframes drawRing { from { stroke-dashoffset: 503; } }
 @keyframes orbit { to { transform: rotate(360deg); } }
 @keyframes sheen { 0%, 65% { transform: translateX(-100%); } 85%, 100% { transform: translateX(100%); } }
+@keyframes quotePulse {
+  0%, 100% { color: var(--text); text-shadow: none; }
+  40% { color: var(--gold-soft); text-shadow: 0 0 16px rgba(244,191,79,.35); }
+}
 
 @media (max-width: 1020px) {
   .topbar { grid-template-columns: 1fr auto; }

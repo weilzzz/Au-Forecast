@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 from gold_app import market_data
@@ -71,6 +72,62 @@ class MarketDataTests(unittest.TestCase):
         self.assertIn("nominal_10y", collected["data"])
         self.assertIn("real_10y", collected["errors"])
         self.assertNotIn("nominal_10y", collected["errors"])
+
+    @patch("gold_app.market_data.fetch_json")
+    def test_intraday_quote_includes_previous_close_and_session_range(self, fetch_json):
+        timestamps = [1_781_250_000, 1_781_250_300, 1_781_250_600]
+        fetch_json.return_value = {
+            "chart": {
+                "result": [
+                    {
+                        "meta": {
+                            "regularMarketPrice": 105,
+                            "regularMarketTime": timestamps[-1],
+                            "chartPreviousClose": 100,
+                            "exchangeTimezoneName": "America/New_York",
+                            "gmtoffset": -14400,
+                        },
+                        "timestamp": timestamps,
+                        "indicators": {
+                            "quote": [{
+                                "open": [101, 102, 104],
+                                "high": [103, 106, 107],
+                                "low": [99, 101, 103],
+                                "close": [102, 104, 105],
+                            }]
+                        },
+                    }
+                ]
+            }
+        }
+        result = market_data.fetch_intraday_yahoo_quote("GC=F")
+        self.assertEqual(result["previous_close"], 100)
+        self.assertEqual(result["open"], 101)
+        self.assertEqual(result["day_high"], 107)
+        self.assertEqual(result["day_low"], 99)
+        self.assertEqual(result["change_percent"], 5)
+
+    def test_metals_market_schedule(self):
+        self.assertFalse(
+            market_data.is_metals_market_open(
+                datetime(2026, 6, 13, 16, tzinfo=timezone.utc)
+            )
+        )
+        self.assertFalse(
+            market_data.is_metals_market_open(
+                datetime(2026, 6, 12, 21, 30, tzinfo=timezone.utc)
+            )
+        )
+        self.assertTrue(
+            market_data.is_metals_market_open(
+                datetime(2026, 6, 14, 22, 5, tzinfo=timezone.utc)
+            )
+        )
+        self.assertTrue(
+            market_data.is_metals_market_open(
+                datetime(2026, 6, 15, 14, tzinfo=timezone.utc)
+            )
+        )
 
 
 if __name__ == "__main__":

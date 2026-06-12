@@ -3,14 +3,19 @@ from __future__ import annotations
 import math
 import statistics
 import xml.etree.ElementTree as ET
+from calendar import monthcalendar
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from urllib.parse import quote
 
 from .http_client import FetchError, fetch_bytes, fetch_json
 
 
 YAHOO_CHART = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=3mo&interval=1d"
+YAHOO_INTRADAY = (
+    "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+    "?range=5d&interval=5m&includePrePost=true"
+)
 GOLD_SPOT = "https://api.gold-api.com/price/XAU"
 TREASURY_REAL = (
     "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml"
@@ -124,6 +129,171 @@ def fetch_spot_gold() -> dict:
         "updated_at": payload.get("updatedAt") or datetime.now(timezone.utc).isoformat(),
         "source_name": "Gold API",
         "source_url": "https://api.gold-api.com/price/XAU",
+    }
+
+
+def is_metals_market_open(now: datetime | None = None) -> bool:
+    current = _new_york_local(now or datetime.now(timezone.utc))
+    weekday = current.weekday()
+    hour = current.hour + current.minute / 60
+    if weekday == 5:
+        return False
+    if weekday == 6:
+        return hour >= 18
+    if weekday == 4:
+        return hour < 17
+    return not 17 <= hour < 18
+
+
+def _nth_weekday(year: int, month: int, weekday: int, occurrence: int) -> int:
+    matching_days = [
+        week[weekday] for week in monthcalendar(year, month) if week[weekday]
+    ]
+    return matching_days[occurrence - 1]
+
+
+def _new_york_local(value: datetime) -> datetime:
+    utc_value = value.astimezone(timezone.utc)
+    year = utc_value.year
+    dst_start = datetime(
+        year,
+        3,
+        _nth_weekday(year, 3, 6, 2),
+        7,
+        tzinfo=timezone.utc,
+    )
+    dst_end = datetime(
+        year,
+        11,
+        _nth_weekday(year, 11, 6, 1),
+        6,
+        tzinfo=timezone.utc,
+    )
+    offset_hours = -4 if dst_start <= utc_value < dst_end else -5
+    return utc_value + timedelta(hours=offset_hours)
+
+
+def fetch_intraday_yahoo_quote(symbol: str) -> dict:
+    payload = fetch_json(YAHOO_INTRADAY.format(symbol=quote(symbol, safe="")))
+    result = payload.get("chart", {}).get("result")
+    if not result:
+        raise FetchError(f"Yahoo returned no intraday data for {symbol}")
+    chart = result[0]
+    meta = chart.get("meta", {})
+    timestamps = chart.get("timestamp", [])
+    quote_data = chart.get("indicators", {}).get("quote", [{}])[0]
+    closes = quote_data.get("close", [])
+    opens = quote_data.get("open", [])
+    highs = quote_data.get("high", [])
+    lows = quote_data.get("low", [])
+    points = []
+    exchange_offset = int(meta.get("gmtoffset", -4 * 3600))
+    for index, timestamp in enumerate(timestamps):
+        close = closes[index] if index < len(closes) else None
+        if close is None:
+            continue
+        points.append(
+            {
+                "timestamp": timestamp,
+                "session_date": datetime.fromtimestamp(
+                    timestamp, tz=timezone.utc
+                ).__add__(
+                    timedelta(seconds=exchange_offset)
+                ).date().isoformat(),
+                "open": opens[index] if index < len(opens) else None,
+                "high": highs[index] if index < len(highs) else None,
+                "low": lows[index] if index < len(lows) else None,
+                "close": close,
+            }
+        )
+    if not points:
+        raise FetchError(f"Yahoo returned empty intraday prices for {symbol}")
+    latest = points[-1]
+    session_points = [
+        point for point in points if point["session_date"] == latest["session_date"]
+    ]
+    previous_close = meta.get("chartPreviousClose") or meta.get("previousClose")
+    current = float(meta.get("regularMarketPrice") or latest["close"])
+    session_opens = [point["open"] for point in session_points if point["open"] is not None]
+    session_highs = [point["high"] for point in session_points if point["high"] is not None]
+    session_lows = [point["low"] for point in session_points if point["low"] is not None]
+    return {
+        "symbol": symbol,
+        "price": _safe_round(current),
+        "previous_close": _safe_round(
+            float(previous_close) if previous_close is not None else None
+        ),
+        "open": _safe_round(float(session_opens[0]) if session_opens else None),
+        "day_high": _safe_round(max(session_highs) if session_highs else None),
+        "day_low": _safe_round(min(session_lows) if session_lows else None),
+        "change": _safe_round(
+            current - float(previous_close) if previous_close is not None else None
+        ),
+        "change_percent": _safe_round(
+            _percent_change(
+                current,
+                float(previous_close) if previous_close is not None else None,
+            )
+        ),
+        "updated_at": datetime.fromtimestamp(
+            meta.get("regularMarketTime", latest["timestamp"]), tz=timezone.utc
+        ).isoformat(),
+        "source_name": "Yahoo Finance",
+        "source_url": f"https://finance.yahoo.com/quote/{quote(symbol, safe='')}",
+    }
+
+
+def collect_live_quotes() -> dict:
+    market_open = is_metals_market_open()
+    quotes: dict[str, dict] = {}
+    errors: dict[str, str] = {}
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = {
+            executor.submit(fetch_spot_gold): "xauusd",
+            executor.submit(fetch_intraday_yahoo_quote, "GC=F"): "comex_gc",
+        }
+        for future in as_completed(futures):
+            key = futures[future]
+            try:
+                quote_data = future.result()
+                quotes[key] = quote_data
+            except Exception as exc:
+                errors[key] = str(exc)
+
+    spot = quotes.get("xauusd")
+    if spot:
+        spot.update(
+            {
+                "name": "国际现货黄金",
+                "unit": "USD/oz",
+                "previous_close": None,
+                "previous_close_note": "场外现货市场没有统一官方收盘价",
+                "open": None,
+                "day_high": None,
+                "day_low": None,
+                "change": None,
+                "change_percent": None,
+                "market_open": market_open,
+            }
+        )
+    futures_quote = quotes.get("comex_gc")
+    if futures_quote:
+        futures_quote.update(
+            {
+                "symbol": "COMEX GC",
+                "name": "COMEX黄金期货",
+                "contract": "GC连续主力",
+                "unit": "USD/oz",
+                "market_open": market_open,
+            }
+        )
+    return {
+        "schema_version": "1.0.0",
+        "interval_seconds": 300,
+        "market_open": market_open,
+        "fetched_at": datetime.now(timezone.utc).isoformat(),
+        "quotes": quotes,
+        "errors": errors,
     }
 
 

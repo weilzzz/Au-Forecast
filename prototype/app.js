@@ -45,6 +45,7 @@ const escapeHtml = (value) =>
 
 let currentData = null;
 let activeHistoryFilter = "all";
+let quoteRefreshTimer = null;
 
 function setActivePage(name) {
   document.querySelectorAll(".tab-button").forEach((button) => {
@@ -71,7 +72,7 @@ function renderMarketQuotes(data) {
   document.getElementById("marketQuotes").innerHTML = quotes
     .map(
       (quote, index) => `
-        <article class="quote ${index === 0 ? "active" : ""}">
+        <article class="quote ${index === 0 ? "active" : ""}" tabindex="0" aria-label="${escapeHtml(quote.name)}实时行情详情">
           <div class="quote-name">
             <span class="live-dot"></span>
             <div>
@@ -86,10 +87,61 @@ function renderMarketQuotes(data) {
             <span>${escapeHtml(quote.unit)}</span>
             <em>${signed(quote.change_percent, "%")}</em>
           </div>
+          <div class="quote-tooltip" role="tooltip">
+            <div><span>昨日收盘</span><strong>${quote.previous_close === null || quote.previous_close === undefined ? escapeHtml(quote.previous_close_note || "—") : formatted(quote.previous_close)}</strong></div>
+            <div><span>今日开盘</span><strong>${formatted(quote.open)}</strong></div>
+            <div><span>日内最高</span><strong>${formatted(quote.day_high)}</strong></div>
+            <div><span>日内最低</span><strong>${formatted(quote.day_low)}</strong></div>
+            <div><span>涨跌额</span><strong>${signed(quote.change)}</strong></div>
+            <div><span>市场状态</span><strong>${quote.market_open === false ? "休市" : "交易中"}</strong></div>
+            <div class="quote-tooltip-wide"><span>更新时间</span><strong>${quote.updated_at ? escapeHtml(dateTime.format(new Date(quote.updated_at)).replaceAll("/", ".")) : "—"}</strong></div>
+            <div class="quote-tooltip-wide"><span>数据来源</span><strong>${escapeHtml(quote.source_name || "—")}</strong></div>
+          </div>
         </article>
       `
     )
     .join("");
+}
+
+function liveQuoteList(payload) {
+  const quoteMap = payload?.quotes || {};
+  return ["xauusd", "comex_gc"].map((key) => quoteMap[key]).filter(Boolean);
+}
+
+function applyLiveQuotes(payload) {
+  const quotes = liveQuoteList(payload);
+  if (!quotes.length || !currentData) return;
+  currentData.market_quotes = quotes;
+  renderMarketQuotes(currentData);
+  if (payload.fetched_at) {
+    document.getElementById("marketAsOf").textContent = dateTime
+      .format(new Date(payload.fetched_at))
+      .replaceAll("/", ".");
+  }
+  document.querySelector(".market-quotes").classList.add("quote-updated");
+  window.setTimeout(
+    () => document.querySelector(".market-quotes")?.classList.remove("quote-updated"),
+    900
+  );
+}
+
+async function requestLiveQuotes() {
+  const response = await fetch("/api/quotes", { cache: "no-store" });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
+
+async function refreshLiveQuotes() {
+  window.clearTimeout(quoteRefreshTimer);
+  let intervalSeconds = 300;
+  try {
+    const payload = await requestLiveQuotes();
+    applyLiveQuotes(payload);
+    intervalSeconds = payload.interval_seconds || intervalSeconds;
+  } catch {
+    // Keep the last successful quote and retry on the regular schedule.
+  }
+  quoteRefreshTimer = window.setTimeout(refreshLiveQuotes, intervalSeconds * 1000);
 }
 
 function historyStatus(record) {
@@ -504,5 +556,10 @@ loadData({ allowMockFallback: true })
   .then((data) => {
     const isMock = data.data_mode === "mock";
     showToast(isMock ? "当前为原型回退数据" : "真实市场数据已载入");
+    refreshLiveQuotes();
   })
   .catch((error) => showToast(`数据载入失败：${error.message}`));
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && currentData) refreshLiveQuotes();
+});

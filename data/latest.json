@@ -1,17 +1,17 @@
 {
   "schema_version": "1.1.0",
   "model_version": "rules-v1.2.0",
-  "analysis_id": "gold-2026-06-12T13:48:42+08:00",
-  "generated_at": "2026-06-12T13:48:42+08:00",
-  "market_as_of": "2026-06-12T05:38:31+00:00",
+  "analysis_id": "gold-2026-06-12T17:08:58+08:00",
+  "generated_at": "2026-06-12T17:08:58+08:00",
+  "market_as_of": "2026-06-12T08:58:53+00:00",
   "timezone": "Asia/Shanghai",
   "instrument": {
     "symbol": "COMEX GC",
     "name": "COMEX黄金期货",
     "currency": "USD",
-    "price": 4198.1,
+    "price": 4242.2,
     "change": null,
-    "change_percent": 2.6355,
+    "change_percent": 3.7137,
     "session": "最新可用行情"
   },
   "market_quotes": [
@@ -19,10 +19,10 @@
       "symbol": "XAUUSD",
       "name": "国际现货黄金",
       "description": "国际现货黄金兑美元报价",
-      "price": 4178.2,
+      "price": 4222.7,
       "unit": "USD/oz",
       "change_percent": null,
-      "updated_at": "2026-06-12T05:48:22Z",
+      "updated_at": "2026-06-12T09:08:40Z",
       "source_name": "Gold API",
       "source_url": "https://api.gold-api.com/price/XAU"
     },
@@ -31,11 +31,11 @@
       "name": "COMEX黄金期货",
       "description": "纽约商品交易所黄金主力期货合约",
       "contract": "GC主力",
-      "price": 4198.1,
+      "price": 4242.2,
       "unit": "USD/oz",
-      "change_percent": 2.6355,
-      "basis": 19.9,
-      "updated_at": "2026-06-12T05:38:31+00:00",
+      "change_percent": 3.7137,
+      "basis": 19.5,
+      "updated_at": "2026-06-12T08:58:53+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/GC%3DF"
     }
@@ -45,9 +45,9 @@
     "horizon_trading_days": 5,
     "direction": "震荡",
     "direction_code": "neutral",
-    "score": 2,
-    "signal_strength": 36,
-    "confidence": 36,
+    "score": -6,
+    "signal_strength": 58,
+    "confidence": 58,
     "confidence_is_probability": false,
     "strength_label": "模型一致度",
     "strength_method": "启发式评分，未经过历史概率校准",
@@ -57,10 +57,10 @@
     "benchmark_contract": "GC=F",
     "benchmark_type": "continuous_front_month",
     "roll_adjusted": false,
-    "summary": "四因素综合评分为+2，当前判断为震荡。数据完整度100%，双参考系用于校验跨市场一致性。",
+    "summary": "四因素综合评分为-6，当前判断为震荡。数据完整度100%，双参考系用于校验跨市场一致性。",
     "expected_range": {
-      "low": 4002.0,
-      "high": 4394.2,
+      "low": 4027.58,
+      "high": 4456.82,
       "unit": "USD/oz",
       "method": "20日历史波动率启发式区间",
       "event_adjusted": true,
@@ -82,9 +82,9 @@
       "id": "stocks",
       "name": "美股与风险偏好",
       "weight": 10,
-      "score": 10,
-      "signal": "偏多",
-      "signal_code": "bullish",
+      "score": 2,
+      "signal": "轻微偏多",
+      "signal_code": "slightly_bullish",
       "summary": "美股资金吸引力与VIX避险需求。",
       "data_completeness": 100
     },
@@ -123,28 +123,28 @@
         {
           "symbol": "WTI",
           "name": "WTI原油",
-          "value": 85.93,
+          "value": 83.84,
           "unit": "USD/bbl",
-          "change_1d": -2.0294,
-          "change_5d": -5.0917,
+          "change_1d": -4.4123,
+          "change_5d": -7.4,
           "trend": "下跌"
         },
         {
           "symbol": "SI",
           "name": "COMEX白银",
-          "value": 66.785,
+          "value": 67.065,
           "unit": "USD/oz",
-          "change_1d": 4.5394,
-          "change_5d": -3.1301,
+          "change_1d": 4.9777,
+          "change_5d": -2.724,
           "trend": "下跌"
         },
         {
           "symbol": "HG",
           "name": "COMEX铜",
-          "value": 6.395,
+          "value": 6.4,
           "unit": "USD/lb",
-          "change_1d": 2.1729,
-          "change_5d": 2.0995,
+          "change_1d": 2.2528,
+          "change_5d": 2.1793,
           "trend": "上涨"
         }
       ],
@@ -163,46 +163,46 @@
         {
           "symbol": "EURUSD",
           "name": "欧元/美元",
-          "value": 1.1566,
+          "value": 1.1578,
           "unit": "",
-          "change_1d": 0.2633,
-          "change_5d": -0.4017,
-          "trend": "欧元走弱"
+          "change_1d": 0.3674,
+          "change_5d": -0.2984,
+          "trend": "震荡"
         },
         {
           "symbol": "GBPUSD",
           "name": "英镑/美元",
-          "value": 1.3401,
+          "value": 1.3409,
           "unit": "",
-          "change_1d": 0.2917,
-          "change_5d": -0.1936,
+          "change_1d": 0.3516,
+          "change_5d": -0.1341,
           "trend": "震荡"
         },
         {
           "symbol": "AUDUSD",
           "name": "澳元/美元",
-          "value": 0.7033,
+          "value": 0.7046,
           "unit": "",
-          "change_1d": 0.5547,
-          "change_5d": -1.3903,
+          "change_1d": 0.7406,
+          "change_5d": -1.208,
           "trend": "澳元走弱"
         },
         {
           "symbol": "USDJPY",
           "name": "美元/日元",
-          "value": 160.308,
+          "value": 160.093,
           "unit": "",
-          "change_1d": -0.1364,
-          "change_5d": 0.1988,
+          "change_1d": -0.2704,
+          "change_5d": 0.0644,
           "trend": "震荡"
         },
         {
           "symbol": "USDCAD",
           "name": "美元/加元",
-          "value": 1.3983,
+          "value": 1.3986,
           "unit": "",
-          "change_1d": 0.2596,
-          "change_5d": 0.5537,
+          "change_1d": 0.2811,
+          "change_5d": 0.5753,
           "trend": "美元走弱"
         }
       ],
@@ -217,15 +217,15 @@
       "factor_id": "central_bank"
     },
     {
-      "title": "VIX",
-      "detail": "该指标当前为黄金综合评分贡献 +5.0 分。",
-      "impact": 5,
-      "factor_id": "stocks"
-    },
-    {
       "title": "COMEX成交量相对均量",
       "detail": "该指标当前为黄金综合评分贡献 +5.0 分。",
       "impact": 5,
+      "factor_id": "fund_flow"
+    },
+    {
+      "title": "GLD成交量相对均量",
+      "detail": "该指标当前为黄金综合评分贡献 +4.5 分。",
+      "impact": 4.5,
       "factor_id": "fund_flow"
     }
   ],
@@ -237,7 +237,7 @@
     },
     {
       "title": "COMEX黄金趋势",
-      "detail": "该指标当前拖累黄金综合评分 -10.0 分。",
+      "detail": "该指标当前拖累黄金综合评分 -9.9 分。",
       "severity": "high"
     },
     {
@@ -262,14 +262,14 @@
       "id": "gc",
       "name": "COMEX黄金期货",
       "group": "market",
-      "value": 4198.1,
+      "value": 4242.2,
       "unit": "USD/oz",
-      "change_1d": 2.6355,
-      "change_5d": -3.2049,
+      "change_1d": 3.7137,
+      "change_5d": -2.1881,
       "signal": "利空黄金",
       "gold_sensitivity": "direct",
       "signal_rationale": "黄金期货上涨通常直接利多黄金",
-      "updated_at": "2026-06-12T05:38:31+00:00",
+      "updated_at": "2026-06-12T08:58:53+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/GC%3DF",
       "status": "ok"
@@ -310,14 +310,14 @@
       "id": "dxy",
       "name": "美元指数",
       "group": "fed",
-      "value": 99.826,
+      "value": 99.735,
       "unit": "",
-      "change_1d": -0.034,
-      "change_5d": -0.2438,
-      "signal": "中性",
+      "change_1d": -0.1252,
+      "change_5d": -0.3348,
+      "signal": "利多黄金",
       "gold_sensitivity": "inverse",
       "signal_rationale": "美元走强通常压制美元计价黄金",
-      "updated_at": "2026-06-12T05:38:37+00:00",
+      "updated_at": "2026-06-12T08:58:53+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/DX-Y.NYB",
       "status": "ok"
@@ -358,14 +358,14 @@
       "id": "vix",
       "name": "VIX",
       "group": "stocks",
-      "value": 19.44,
+      "value": 18.83,
       "unit": "",
-      "change_1d": -12.5112,
-      "change_5d": 26.2338,
-      "signal": "利多黄金",
+      "change_1d": -3.1379,
+      "change_5d": -12.4593,
+      "signal": "利空黄金",
       "gold_sensitivity": "direct",
       "signal_rationale": "波动率上升通常提升避险需求",
-      "updated_at": "2026-06-11T20:15:01+00:00",
+      "updated_at": "2026-06-12T08:53:46+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/%5EVIX",
       "status": "ok"
@@ -390,14 +390,14 @@
       "id": "wti",
       "name": "WTI原油",
       "group": "commodities",
-      "value": 85.93,
+      "value": 83.84,
       "unit": "USD/bbl",
-      "change_1d": -2.0294,
-      "change_5d": -5.0917,
+      "change_1d": -4.4123,
+      "change_5d": -7.4,
       "signal": "利空黄金",
       "gold_sensitivity": "direct",
       "signal_rationale": "油价上涨可能抬升通胀预期，但关系并不稳定",
-      "updated_at": "2026-06-12T05:38:27+00:00",
+      "updated_at": "2026-06-12T08:58:55+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/CL%3DF",
       "status": "ok"
@@ -406,14 +406,14 @@
       "id": "silver",
       "name": "COMEX白银",
       "group": "commodities",
-      "value": 66.785,
+      "value": 67.065,
       "unit": "USD/oz",
-      "change_1d": 4.5394,
-      "change_5d": -3.1301,
+      "change_1d": 4.9777,
+      "change_5d": -2.724,
       "signal": "利空黄金",
       "gold_sensitivity": "direct",
       "signal_rationale": "白银走强可作为贵金属风险偏好的参考",
-      "updated_at": "2026-06-12T05:37:16+00:00",
+      "updated_at": "2026-06-12T08:58:50+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/SI%3DF",
       "status": "ok"
@@ -422,14 +422,14 @@
       "id": "copper",
       "name": "COMEX铜",
       "group": "commodities",
-      "value": 6.395,
+      "value": 6.4,
       "unit": "USD/lb",
-      "change_1d": 2.1729,
-      "change_5d": 2.0995,
+      "change_1d": 2.2528,
+      "change_5d": 2.1793,
       "signal": "利多黄金",
       "gold_sensitivity": "direct",
       "signal_rationale": "铜价仅作为商品广度参考，不直接代表黄金方向",
-      "updated_at": "2026-06-12T05:38:32+00:00",
+      "updated_at": "2026-06-12T08:58:06+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/HG%3DF",
       "status": "ok"
@@ -526,116 +526,116 @@
       "spot": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:48:22+00:00",
+        "updated_at": "2026-06-12T09:08:40+00:00",
         "age_hours": 0.0
       },
       "gc": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:38:31+00:00",
+        "updated_at": "2026-06-12T08:58:53+00:00",
         "age_hours": 0.2
       },
       "gld": {
         "score": 100,
         "status": "ok",
         "updated_at": "2026-06-11T20:00:00+00:00",
-        "age_hours": 9.8
+        "age_hours": 13.1
       },
       "sp500": {
         "score": 100,
         "status": "ok",
         "updated_at": "2026-06-11T20:56:18+00:00",
-        "age_hours": 8.9
+        "age_hours": 12.2
       },
       "nasdaq": {
         "score": 100,
         "status": "ok",
         "updated_at": "2026-06-11T21:15:59+00:00",
-        "age_hours": 8.5
+        "age_hours": 11.9
       },
       "vix": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-11T20:15:01+00:00",
-        "age_hours": 9.6
+        "updated_at": "2026-06-12T08:53:46+00:00",
+        "age_hours": 0.3
       },
       "dxy": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:38:37+00:00",
+        "updated_at": "2026-06-12T08:58:53+00:00",
         "age_hours": 0.2
       },
       "wti": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:38:27+00:00",
+        "updated_at": "2026-06-12T08:58:55+00:00",
         "age_hours": 0.2
       },
       "silver": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:37:16+00:00",
+        "updated_at": "2026-06-12T08:58:50+00:00",
         "age_hours": 0.2
       },
       "copper": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:38:32+00:00",
+        "updated_at": "2026-06-12T08:58:06+00:00",
         "age_hours": 0.2
       },
       "eurusd": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:48:05+00:00",
+        "updated_at": "2026-06-12T09:08:09+00:00",
         "age_hours": 0.0
       },
       "gbpusd": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:48:05+00:00",
+        "updated_at": "2026-06-12T09:08:09+00:00",
         "age_hours": 0.0
       },
       "audusd": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:47:05+00:00",
+        "updated_at": "2026-06-12T09:07:09+00:00",
         "age_hours": 0.0
       },
       "usdjpy": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:48:38+00:00",
+        "updated_at": "2026-06-12T09:08:55+00:00",
         "age_hours": 0.0
       },
       "usdcad": {
         "score": 100,
         "status": "ok",
-        "updated_at": "2026-06-12T05:48:38+00:00",
+        "updated_at": "2026-06-12T09:08:55+00:00",
         "age_hours": 0.0
       },
       "real_10y": {
         "score": 100,
         "status": "ok",
         "updated_at": "2026-06-11T00:00:00+00:00",
-        "age_hours": 29.8
+        "age_hours": 33.1
       },
       "nominal_10y": {
         "score": 100,
         "status": "ok",
         "updated_at": "2026-06-11T00:00:00+00:00",
-        "age_hours": 29.8
+        "age_hours": 33.1
       },
       "fed_policy": {
         "score": 100,
         "status": "ok",
         "updated_at": "2026-06-01T00:00:00+00:00",
-        "age_hours": 269.8
+        "age_hours": 273.1
       },
       "central_bank": {
         "score": 100,
         "status": "ok",
         "updated_at": "2026-06-01T00:00:00+00:00",
-        "age_hours": 269.8
+        "age_hours": 273.1
       }
     },
     "status": "good",
