@@ -1,7 +1,39 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime
+from datetime import datetime, timezone
+
+
+FRESHNESS_LIMIT_HOURS = {
+    "spot": 24,
+    "yahoo": 72,
+    "treasury": 120,
+    "fed_policy": 24 * 14,
+    "central_bank": 24 * 45,
+}
+
+YAHOO_KEYS = {
+    "gc", "gld", "sp500", "nasdaq", "vix", "dxy", "wti", "silver",
+    "copper", "eurusd", "gbpusd", "audusd", "usdjpy", "usdcad",
+}
+
+CORE_KEYS = {
+    "gc", "gld", "sp500", "nasdaq", "vix", "dxy", "real_10y", "nominal_10y",
+}
+
+INDICATOR_SENSITIVITY = {
+    "gc": (1, 0.25, "黄金期货上涨通常直接利多黄金"),
+    "real_10y": (-1, 0.03, "实际利率上升通常提高持有黄金的机会成本"),
+    "nominal_10y": (-1, 0.05, "美债收益率上升通常对无息黄金构成压力"),
+    "dxy": (-1, 0.25, "美元走强通常压制美元计价黄金"),
+    "sp500": (-1, 0.50, "美股走弱可能提升避险需求"),
+    "nasdaq": (-1, 0.60, "成长股走弱可能提升避险需求"),
+    "vix": (1, 2.00, "波动率上升通常提升避险需求"),
+    "gld": (1, 0.25, "GLD价格上涨反映黄金市场价格动能"),
+    "wti": (1, 0.50, "油价上涨可能抬升通胀预期，但关系并不稳定"),
+    "silver": (1, 0.50, "白银走强可作为贵金属风险偏好的参考"),
+    "copper": (1, 0.50, "铜价仅作为商品广度参考，不直接代表黄金方向"),
+}
 
 
 def clamp(value: float, low: float, high: float) -> float:
@@ -45,14 +77,114 @@ def indicator(data: dict, key: str, field: str = "change_5d") -> float | None:
     return item.get(field) if item else None
 
 
+def _parse_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _manual_score(config: dict, key: str, limit: float, max_age_days: int) -> tuple[float, bool]:
+    item = config.get(key, {})
+    updated_at = _parse_datetime(item.get("updated_at"))
+    expires_at = _parse_datetime(item.get("expires_at"))
+    now = datetime.now(timezone.utc)
+    fresh = bool(
+        updated_at
+        and (now - updated_at).total_seconds() <= max_age_days * 86400
+        and (expires_at is None or now <= expires_at)
+    )
+    if not fresh:
+        return 0.0, False
+    try:
+        score = float(item.get("score", 0))
+    except (TypeError, ValueError):
+        return 0.0, False
+    if not math.isfinite(score):
+        return 0.0, False
+    return clamp(score, -limit, limit), True
+
+
+def _has_fields(data: dict, key: str, fields: tuple[str, ...]) -> bool:
+    item = data.get(key)
+    return bool(item) and all(item.get(field) is not None for field in fields)
+
+
+def _freshness_limit(key: str) -> int:
+    if key == "spot":
+        return FRESHNESS_LIMIT_HOURS["spot"]
+    if key in ("real_10y", "nominal_10y"):
+        return FRESHNESS_LIMIT_HOURS["treasury"]
+    return FRESHNESS_LIMIT_HOURS["yahoo"]
+
+
+def _freshness_result(
+    updated_at: str | None,
+    max_age_hours: int,
+    now: datetime,
+) -> dict:
+    timestamp = _parse_datetime(updated_at)
+    if timestamp is None:
+        return {"score": 0, "status": "missing", "updated_at": None, "age_hours": None}
+    age_hours = max(0.0, (now - timestamp).total_seconds() / 3600)
+    if age_hours <= max_age_hours:
+        score, status = 100, "ok"
+    elif age_hours <= max_age_hours * 2:
+        score, status = 60, "delayed"
+    else:
+        score, status = 0, "delayed"
+    return {
+        "score": score,
+        "status": status,
+        "updated_at": timestamp.isoformat(),
+        "age_hours": round(age_hours, 1),
+    }
+
+
+def _gold_signal(key: str, change: float | None) -> tuple[str, str, str]:
+    sensitivity, threshold, rationale = INDICATOR_SENSITIVITY[key]
+    sensitivity_code = "direct" if sensitivity > 0 else "inverse"
+    if change is None:
+        return "数据不足", sensitivity_code, rationale
+    adjusted = change * sensitivity
+    if adjusted > threshold:
+        signal = "利多黄金"
+    elif adjusted < -threshold:
+        signal = "利空黄金"
+    else:
+        signal = "中性"
+    return signal, sensitivity_code, rationale
+
+
+def _upcoming_event_risk(events: list[dict], now: datetime, horizon: int) -> tuple[int, bool]:
+    high_impact = 0
+    window_hours = (max(1, horizon) + 2) * 24
+    for event in events:
+        scheduled_at = _parse_datetime(event.get("scheduled_at"))
+        if (
+            event.get("importance") == "high"
+            and scheduled_at is not None
+            and 0 <= (scheduled_at - now).total_seconds() <= window_hours * 3600
+        ):
+            high_impact += 1
+    return min(10, high_impact * 5), high_impact > 0
+
+
 def build_factors(data: dict, config: dict) -> tuple[list[dict], list[dict]]:
     details = []
+    fed_policy_score, fed_policy_fresh = _manual_score(config, "fed_policy", 5, 14)
+    central_score, central_bank_fresh = _manual_score(config, "central_bank", 10, 45)
 
     fed_components = [
         ("10年实际利率", component_score(indicator(data, "real_10y"), 0.18, 20, inverse=True)),
         ("10年美债收益率", component_score(indicator(data, "nominal_10y"), 0.22, 10, inverse=True)),
         ("美元指数", component_score(indicator(data, "dxy"), 1.6, 15, inverse=True)),
-        ("美联储政策倾向", float(config.get("fed_policy", {}).get("score", 0))),
+        ("美联储政策倾向", fed_policy_score),
     ]
     fed_score = sum(value for _, value in fed_components)
     details.extend(("fed", name, value) for name, value in fed_components)
@@ -67,26 +199,35 @@ def build_factors(data: dict, config: dict) -> tuple[list[dict], list[dict]]:
 
     fund_components = [
         ("GLD价格趋势", component_score(indicator(data, "gld"), 2.2, 10)),
-        ("GLD成交量", component_score(indicator(data, "gld", "volume_change_5avg"), 35, 5)),
+        ("GLD成交量相对均量", component_score(indicator(data, "gld", "volume_change_5avg"), 35, 5)),
         ("COMEX黄金趋势", component_score(indicator(data, "gc"), 2.2, 10)),
-        ("COMEX成交量", component_score(indicator(data, "gc", "volume_change_5avg"), 35, 5)),
+        ("COMEX成交量相对均量", component_score(indicator(data, "gc", "volume_change_5avg"), 35, 5)),
     ]
     fund_score = sum(value for _, value in fund_components)
     details.extend(("fund_flow", name, value) for name, value in fund_components)
 
-    central_score = clamp(float(config.get("central_bank", {}).get("score", 0)), -10, 10)
     details.append(("central_bank", "全球央行购金", central_score))
 
     completeness = {
-        "fed": sum(key in data for key in ("real_10y", "nominal_10y", "dxy")) + 1,
-        "stocks": sum(key in data for key in ("sp500", "nasdaq", "vix")),
-        "fund_flow": sum(key in data for key in ("gld", "gc")) * 2,
-        "central_bank": 1,
+        "fed": sum(
+            _has_fields(data, key, ("change_5d",))
+            for key in ("real_10y", "nominal_10y", "dxy")
+        ) + int(fed_policy_fresh),
+        "stocks": sum(
+            _has_fields(data, key, ("change_5d",))
+            for key in ("sp500", "nasdaq", "vix")
+        ),
+        "fund_flow": sum(
+            _has_fields(data, key, (field,))
+            for key in ("gld", "gc")
+            for field in ("change_5d", "volume_change_5avg")
+        ),
+        "central_bank": int(central_bank_fresh),
     }
     definitions = [
         ("fed", "美联储与利率", 50, fed_score, "实际利率、美债收益率、美元和政策倾向。"),
         ("stocks", "美股与风险偏好", 10, stock_score, "美股资金吸引力与VIX避险需求。"),
-        ("fund_flow", "ETF与期货资金流", 30, fund_score, "GLD与COMEX黄金的量价趋势。"),
+        ("fund_flow", "黄金市场量价动能", 30, fund_score, "GLD与COMEX黄金的量价动能，不代表ETF净申购或期货持仓方向。"),
         (
             "central_bank",
             "全球央行购金",
@@ -152,8 +293,13 @@ def _reference(data: dict, reference_id: str, name: str, items: list[tuple]) -> 
     else:
         signal, code = "中性", "neutral"
     agreement = round(max(positives, negatives, total - positives - negatives) / total * 100) if total else 0
-    relationship = "同步" if agreement >= 66 else "轻微背离"
-    abnormal = agreement < 35
+    if agreement >= 66:
+        relationship = "同步"
+    elif agreement > 40:
+        relationship = "轻微背离"
+    else:
+        relationship = "严重背离"
+    abnormal = agreement <= 40
     summary = (
         f"{name}中{positives}项偏多、{negatives}项偏空，"
         f"当前整体{signal}，一致度{agreement}%。"
@@ -239,13 +385,24 @@ def build_insights(details: list[tuple], factors: list[dict]) -> tuple[list[dict
     return drivers, risks
 
 
-def expected_range(price: float, volatility: float | None, horizon: int) -> dict:
-    volatility = volatility or 0.012
-    move = price * volatility * math.sqrt(horizon) * 1.15
+def expected_range(
+    price: float,
+    volatility: float | None,
+    horizon: int,
+    event_multiplier: float = 1.0,
+) -> dict:
+    if volatility is None or not math.isfinite(volatility) or volatility <= 0:
+        volatility = 0.012
+    horizon = max(1, horizon)
+    event_multiplier = max(1.0, event_multiplier)
+    move = price * volatility * math.sqrt(horizon) * 1.15 * event_multiplier
     return {
         "low": round(price - move, 2),
         "high": round(price + move, 2),
         "unit": "USD/oz",
+        "method": "20日历史波动率启发式区间",
+        "event_adjusted": event_multiplier > 1,
+        "historical_coverage": None,
     }
 
 
@@ -256,22 +413,56 @@ def build_analysis(collected: dict, config: dict) -> dict:
     score = round(sum(factor["score"] for factor in factors))
     direction, direction_code = direction_from_score(score)
 
-    expected_keys = {
-        "spot", "gc", "gld", "sp500", "nasdaq", "vix", "dxy", "wti", "silver",
-        "copper", "eurusd", "gbpusd", "audusd", "usdjpy", "usdcad", "real_10y",
-        "nominal_10y",
+    expected_fields = {
+        "spot": ("price", "updated_at"),
+        "gc": ("price", "change_1d", "change_5d", "updated_at"),
+        "gld": ("price", "change_1d", "change_5d", "updated_at"),
+        "sp500": ("price", "change_1d", "change_5d", "updated_at"),
+        "nasdaq": ("price", "change_1d", "change_5d", "updated_at"),
+        "vix": ("price", "change_1d", "change_5d", "updated_at"),
+        "dxy": ("price", "change_1d", "change_5d", "updated_at"),
+        "wti": ("price", "change_1d", "change_5d", "updated_at"),
+        "silver": ("price", "change_1d", "change_5d", "updated_at"),
+        "copper": ("price", "change_1d", "change_5d", "updated_at"),
+        "eurusd": ("price", "change_1d", "change_5d", "updated_at"),
+        "gbpusd": ("price", "change_1d", "change_5d", "updated_at"),
+        "audusd": ("price", "change_1d", "change_5d", "updated_at"),
+        "usdjpy": ("price", "change_1d", "change_5d", "updated_at"),
+        "usdcad": ("price", "change_1d", "change_5d", "updated_at"),
+        "real_10y": ("value", "change_1d", "change_5d", "updated_at"),
+        "nominal_10y": ("value", "change_1d", "change_5d", "updated_at"),
     }
-    available = len(expected_keys.intersection(data))
-    completeness = round(available / len(expected_keys) * 100)
+    field_count = sum(len(fields) for fields in expected_fields.values())
+    available_fields = sum(
+        item.get(field) is not None
+        for key, fields in expected_fields.items()
+        for item in [data.get(key, {})]
+        for field in fields
+    )
+    completeness = round(available_fields / field_count * 100)
+    missing_count = sum(
+        not _has_fields(data, key, fields) for key, fields in expected_fields.items()
+    )
     reference_bonus = sum(
         6 if ref["signal_code"] == ("bullish" if score > 0 else "bearish") else -4
         for ref in references
         if score != 0
     )
-    confidence = round(clamp(48 + abs(score) * 0.45 + reference_bonus - len(collected["errors"]) * 3, 20, 90))
+    now = datetime.now(timezone.utc)
+    horizon = int(config.get("forecast_horizon_trading_days", 5))
+    events = config.get("events", [])
+    event_penalty, has_event_risk = _upcoming_event_risk(events, now, horizon)
+    signal_strength = round(
+        clamp(
+            20 + completeness * 0.28 + abs(score) * 0.45 + reference_bonus
+            - len(collected["errors"]) * 3 - event_penalty,
+            20,
+            90,
+        )
+    )
     if completeness < 70:
         direction, direction_code = "数据不足", "insufficient"
-        confidence = min(confidence, 45)
+        signal_strength = min(signal_strength, 45)
 
     gc = data.get("gc")
     spot = data.get("spot")
@@ -280,8 +471,45 @@ def build_analysis(collected: dict, config: dict) -> dict:
     if base_price is None:
         raise RuntimeError("No gold price is available")
     market_time = benchmark.get("updated_at")
-    horizon = int(config.get("forecast_horizon_trading_days", 5))
-    forecast_range = expected_range(base_price, (gc or {}).get("volatility_20d"), horizon)
+    freshness_by_source = {
+        key: _freshness_result(
+            data.get(key, {}).get("updated_at"),
+            _freshness_limit(key),
+            now,
+        )
+        for key in expected_fields
+    }
+    for key in ("fed_policy", "central_bank"):
+        freshness_by_source[key] = _freshness_result(
+            config.get(key, {}).get("updated_at"),
+            FRESHNESS_LIMIT_HOURS[key],
+            now,
+        )
+        expires_at = _parse_datetime(config.get(key, {}).get("expires_at"))
+        if expires_at is not None and now > expires_at:
+            freshness_by_source[key]["score"] = 0
+            freshness_by_source[key]["status"] = "delayed"
+    freshness_scores = [item["score"] for item in freshness_by_source.values()]
+    freshness = round(sum(freshness_scores) / len(freshness_scores))
+    delayed_inputs = [
+        key
+        for key, result in freshness_by_source.items()
+        if result["status"] == "delayed"
+    ]
+    delayed_count = len(delayed_inputs)
+    core_timestamps = [
+        result["updated_at"]
+        for key, result in freshness_by_source.items()
+        if key in CORE_KEYS or key in ("fed_policy", "central_bank")
+        if result["updated_at"] is not None
+    ]
+    oldest_core_data_at = min(core_timestamps) if core_timestamps else None
+    forecast_range = expected_range(
+        base_price,
+        (gc or {}).get("volatility_20d"),
+        horizon,
+        event_multiplier=1.2 if has_event_risk else 1.0,
+    )
     drivers, risks = build_insights(details, factors)
 
     market_quotes = []
@@ -332,6 +560,8 @@ def build_analysis(collected: dict, config: dict) -> dict:
     ]
     for key, name, group, unit in indicator_defs:
         item = data.get(key)
+        sensitivity, _, rationale = INDICATOR_SENSITIVITY[key]
+        sensitivity_code = "direct" if sensitivity > 0 else "inverse"
         if not item:
             indicators.append(
                 {
@@ -343,6 +573,8 @@ def build_analysis(collected: dict, config: dict) -> dict:
                     "change_1d": None,
                     "change_5d": None,
                     "signal": "数据缺失",
+                    "gold_sensitivity": sensitivity_code,
+                    "signal_rationale": rationale,
                     "updated_at": None,
                     "source_name": "",
                     "source_url": "",
@@ -352,9 +584,7 @@ def build_analysis(collected: dict, config: dict) -> dict:
             continue
         value = item.get("price", item.get("value"))
         change = item.get("change_5d")
-        signal = "中性"
-        if change is not None:
-            signal = "偏多" if change > 0.25 else "偏空" if change < -0.25 else "中性"
+        signal, sensitivity_code, rationale = _gold_signal(key, change)
         indicators.append(
             {
                 "id": key,
@@ -365,16 +595,46 @@ def build_analysis(collected: dict, config: dict) -> dict:
                 "change_1d": item.get("change_1d"),
                 "change_5d": change,
                 "signal": signal,
+                "gold_sensitivity": sensitivity_code,
+                "signal_rationale": rationale,
                 "updated_at": item.get("updated_at"),
                 "source_name": item.get("source_name", ""),
                 "source_url": item.get("source_url", ""),
-                "status": "ok",
+                "status": freshness_by_source[key]["status"],
+            }
+        )
+
+    for key, name, group, unit in (
+        ("fed_policy", "美联储政策人工评分", "fed", "score"),
+        ("central_bank", "全球央行购金人工评分", "central_bank", "score"),
+    ):
+        governance = config.get(key, {})
+        value = governance.get("score")
+        indicators.append(
+            {
+                "id": key,
+                "name": name,
+                "group": group,
+                "value": value,
+                "unit": unit,
+                "change_1d": None,
+                "change_5d": None,
+                "signal": governance.get("status", "人工判断"),
+                "gold_sensitivity": "manual",
+                "signal_rationale": governance.get("rationale", governance.get("note", "")),
+                "updated_at": governance.get("updated_at"),
+                "source_name": governance.get("source_name", ""),
+                "source_url": governance.get("source_url", ""),
+                "status": freshness_by_source[key]["status"],
+                "data_period": governance.get("data_period"),
+                "owner": governance.get("owner"),
+                "expires_at": governance.get("expires_at"),
             }
         )
 
     return {
         "schema_version": "1.1.0",
-        "model_version": "rules-v1.0.0",
+        "model_version": "rules-v1.2.0",
         "analysis_id": f"gold-{datetime.now().astimezone().isoformat(timespec='seconds')}",
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "market_as_of": market_time,
@@ -391,12 +651,21 @@ def build_analysis(collected: dict, config: dict) -> dict:
         "market_quotes": market_quotes,
         "forecast": {
             "horizon": f"未来{horizon}个交易日",
+            "horizon_trading_days": horizon,
             "direction": direction,
             "direction_code": direction_code,
             "score": score,
-            "confidence": confidence,
+            "signal_strength": signal_strength,
+            "confidence": signal_strength,
+            "confidence_is_probability": False,
+            "strength_label": "模型一致度",
+            "strength_method": "启发式评分，未经过历史概率校准",
+            "event_risk_penalty": event_penalty,
             "benchmark_symbol": "COMEX GC" if gc else "XAUUSD",
             "benchmark_name": "COMEX黄金期货" if gc else "国际现货黄金",
+            "benchmark_contract": gc.get("symbol") if gc else "XAUUSD",
+            "benchmark_type": "continuous_front_month" if gc else "spot",
+            "roll_adjusted": False,
             "summary": (
                 f"四因素综合评分为{score:+d}，当前判断为{direction}。"
                 f"数据完整度{completeness}%，双参考系用于校验跨市场一致性。"
@@ -407,18 +676,45 @@ def build_analysis(collected: dict, config: dict) -> dict:
         "reference_systems": references,
         "drivers": drivers,
         "risks": risks,
-        "events": config.get("events", []),
+        "events": events,
         "indicators": indicators,
+        "model_governance": {
+            "manual_inputs": {
+                key: {
+                    field: config.get(key, {}).get(field)
+                    for field in (
+                        "source_name", "source_url", "data_period", "owner",
+                        "updated_at", "expires_at", "rationale",
+                    )
+                }
+                for key in ("fed_policy", "central_bank")
+            },
+            "planned_sources": config.get("planned_sources", []),
+            "probability_calibrated": False,
+            "minimum_calibration_samples": 100,
+        },
         "data_quality": {
             "completeness": completeness,
-            "freshness": 100 if market_time else 0,
-            "missing_count": len(expected_keys) - available,
-            "delayed_count": 0,
-            "status": "good" if completeness >= 85 else "degraded" if completeness >= 70 else "poor",
+            "freshness": max(0, min(100, freshness)),
+            "missing_count": missing_count,
+            "delayed_count": delayed_count,
+            "delayed_inputs": delayed_inputs,
+            "oldest_core_data_at": oldest_core_data_at,
+            "freshness_by_source": freshness_by_source,
+            "status": (
+                "good"
+                if completeness >= 85 and freshness >= 70
+                else "degraded"
+                if completeness >= 70 and freshness >= 40
+                else "poor"
+            ),
             "message": (
-                "核心数据获取正常。"
-                if completeness >= 85
-                else f"部分数据缺失：{', '.join(collected['errors']) or '未知'}。"
+                f"核心数据在各自有效期内；最旧核心输入为{oldest_core_data_at or '未知'}。"
+                if completeness >= 85 and freshness >= 70
+                else (
+                    f"存在缺失或延迟输入："
+                    f"{', '.join(sorted(set(collected['errors']) | set(delayed_inputs))) or '未知'}。"
+                )
             ),
         },
         "disclaimer": "本页面仅用于市场研究与信息整理，不构成投资建议或收益承诺。",

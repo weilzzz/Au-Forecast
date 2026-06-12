@@ -1,5 +1,7 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
+  "model_version": "rules-v1.2.0",
+  "data_mode": "mock",
   "analysis_id": "gold-2026-06-12T09:30:00+08:00",
   "generated_at": "2026-06-12T09:30:00+08:00",
   "market_as_of": "2026-06-12T09:25:00+08:00",
@@ -37,15 +39,26 @@
   ],
   "forecast": {
     "horizon": "1-5个交易日",
+    "horizon_trading_days": 5,
     "direction": "谨慎偏多",
     "direction_code": "cautiously_bullish",
     "score": 28,
-    "confidence": 67,
+    "signal_strength": 62,
+    "confidence": 62,
+    "confidence_is_probability": false,
+    "strength_label": "模型一致度",
+    "strength_method": "启发式评分，未经过历史概率校准",
+    "event_risk_penalty": 5,
+    "benchmark_symbol": "XAUUSD",
+    "benchmark_name": "国际现货黄金",
     "summary": "资金流保持强势，实际利率回落提供支撑，但美元仍偏强，短线更可能震荡上行。",
     "expected_range": {
       "low": 3295,
       "high": 3415,
-      "unit": "USD/oz"
+      "unit": "USD/oz",
+      "method": "20日历史波动率启发式区间",
+      "event_adjusted": true,
+      "historical_coverage": null
     }
   },
   "factors": [
@@ -71,12 +84,12 @@
     },
     {
       "id": "fund_flow",
-      "name": "ETF与期货资金流",
+      "name": "黄金市场量价动能",
       "weight": 30,
       "score": 17,
       "signal": "偏多",
       "signal_code": "bullish",
-      "summary": "GLD量价同步走强，黄金期货维持上升趋势。",
+      "summary": "GLD与COMEX黄金的量价动能，不代表ETF净申购或期货持仓方向。",
       "data_completeness": 86
     },
     {
@@ -259,16 +272,12 @@
   ],
   "events": [
     {
-      "name": "美国CPI",
-      "scheduled_at": "2026-06-15T20:30:00+08:00",
-      "importance": "high",
-      "expected_effect": "波动可能放大"
-    },
-    {
-      "name": "FOMC利率决议",
+      "name": "FOMC利率决议与经济预测",
       "scheduled_at": "2026-06-18T02:00:00+08:00",
       "importance": "high",
-      "expected_effect": "决定短期利率方向"
+      "expected_effect": "利率路径、点阵图和鲍威尔表态可能放大美元、实际利率与黄金波动",
+      "source_name": "Federal Reserve",
+      "source_url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
     }
   ],
   "indicators": [
@@ -376,6 +385,8 @@
     "freshness": 88,
     "missing_count": 1,
     "delayed_count": 1,
+    "delayed_inputs": ["cftc_managed_money"],
+    "oldest_core_data_at": "2026-06-11T00:00:00+00:00",
     "status": "good",
     "message": "核心数据完整，CFTC周度数据等待更新。"
   },
@@ -385,6 +396,23 @@
       "bullish_threshold": 0.5,
       "bearish_threshold": -0.5,
       "description": "使用预测后第5个交易日收盘价验证；收益率≥+0.5%为上涨，≤-0.5%为下跌，其余为震荡。"
+    },
+    "metrics": {
+      "sample_count": 7,
+      "direction_accuracy": 71.4,
+      "balanced_accuracy": 72.2,
+      "range_coverage": 85.7,
+      "class_distribution": {
+        "bullish": 3,
+        "neutral": 2,
+        "bearish": 2
+      },
+      "confusion_matrix": {
+        "bullish": {"bullish": 2, "neutral": 0, "bearish": 1},
+        "neutral": {"bullish": 0, "neutral": 2, "bearish": 0},
+        "bearish": {"bullish": 1, "neutral": 0, "bearish": 1}
+      },
+      "probability_calibration_ready": false
     },
     "records": [
       {

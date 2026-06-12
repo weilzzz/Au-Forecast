@@ -26,7 +26,16 @@
         "direction_hit": null,
         "range_hit": null
       },
-      "model_version": "rules-v1.0.0"
+      "model_version": "rules-v1.0.0",
+      "evaluation_rule": {
+        "horizon_trading_days": 5,
+        "bullish_threshold": 0.5,
+        "bearish_threshold": -0.5,
+        "description": "使用预测后第5个交易日收盘价验证；收益率≥+0.5%为上涨，≤-0.5%为下跌，其余为震荡。",
+        "price_basis": "生成时行情报价到第5个交易日收盘价",
+        "settlement_comparable": false,
+        "roll_adjusted": false
+      }
     }
   ]
 }

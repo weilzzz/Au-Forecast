@@ -6,13 +6,53 @@
     "score": 6,
     "status": "偏多",
     "updated_at": "2026-06-01",
-    "note": "全球央行整体保持净购金。该项为月度人工配置，后续接入公开月报。"
+    "expires_at": "2026-07-31T23:59:59+08:00",
+    "data_period": "2026-Q1",
+    "owner": "Aurum Signal 模型维护",
+    "source_name": "World Gold Council Gold Demand Trends Q1 2026",
+    "source_url": "https://www.gold.org/goldhub/research/gold-demand-trends/gold-demand-trends-q1-2026",
+    "rationale": "WGC报告显示2026年一季度央行净购金约244吨，因此保留中等偏多评分；该分数是人工规则输入，不是实时央行流量。",
+    "note": "全球央行整体保持净购金。人工配置将在到期后自动失效。"
   },
   "fed_policy": {
     "score": -2,
     "status": "轻微偏空",
     "updated_at": "2026-06-01",
-    "note": "政策倾向为人工配置，仅占美联储因素5分。"
+    "expires_at": "2026-06-18T02:00:00+08:00",
+    "data_period": "2026-06 FOMC会前",
+    "owner": "Aurum Signal 模型维护",
+    "source_name": "Federal Reserve FOMC Calendar",
+    "source_url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+    "rationale": "FOMC会议前维持轻微偏鹰的人工判断；决议发布后必须重新评估。",
+    "note": "政策倾向为人工配置，仅占美联储因素5分，到期后自动归零。"
   },
-  "events": []
+  "events": [
+    {
+      "name": "FOMC利率决议与经济预测",
+      "scheduled_at": "2026-06-18T02:00:00+08:00",
+      "importance": "high",
+      "expected_effect": "利率路径、点阵图和鲍威尔表态可能放大美元、实际利率与黄金波动",
+      "meeting_window": "2026-06-16至2026-06-17（美国东部时间）",
+      "source_name": "Federal Reserve",
+      "source_url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    }
+  ],
+  "planned_sources": [
+    {
+      "id": "cftc_managed_money",
+      "name": "CFTC管理基金净多仓",
+      "frequency": "weekly",
+      "status": "planned",
+      "source_name": "U.S. Commodity Futures Trading Commission",
+      "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalCompressed/index.htm"
+    },
+    {
+      "id": "gld_holdings",
+      "name": "GLD份额与持仓吨数变化",
+      "frequency": "daily",
+      "status": "planned",
+      "source_name": "SPDR Gold Shares",
+      "source_url": "https://www.spdrgoldshares.com/usa/"
+    }
+  ]
 }

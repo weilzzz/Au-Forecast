@@ -88,7 +88,7 @@
                   <circle class="orbit-value" cx="95" cy="95" r="80"></circle>
                 </svg>
                 <div class="orbit-core">
-                  <small>未来 <span id="horizon">1-5个交易日</span></small>
+                  <small><span id="horizon">未来1-5个交易日</span></small>
                   <strong id="direction">谨慎偏多</strong>
                   <span>综合分 <b id="score">+28</b></span>
                 </div>
@@ -98,7 +98,7 @@
               <div class="forecast-copy">
                 <div class="confidence-row">
                   <div>
-                    <span>分析置信度</span>
+                    <span>模型一致度</span>
                     <strong><i id="confidence">67</i>%</strong>
                   </div>
                   <div class="confidence-track"><i id="confidenceBar"></i></div>
@@ -107,7 +107,7 @@
                 <div class="range-row">
                   <span>观察区间 · <i id="benchmarkName">COMEX基准</i></span>
                   <strong id="expectedRange">$3,295 — $3,415</strong>
-                  <small>非目标价</small>
+                  <small id="rangeMethod">启发式观察区间，非统计置信区间</small>
                 </div>
               </div>
             </div>
@@ -169,6 +169,7 @@
             <div class="quality-body">
               <div class="quality-number"><strong id="completeness">91%</strong><span>完整度</span></div>
               <div class="quality-number"><strong id="freshness">88%</strong><span>新鲜度</span></div>
+              <div class="quality-number"><strong id="delayedCount">0</strong><span>延迟输入</span></div>
               <p id="qualityMessage">核心数据完整，CFTC周度数据等待更新。</p>
             </div>
           </article>
@@ -207,7 +208,7 @@
           <div>
             <span>RISK CALENDAR</span>
             <h1>风险事件窗口</h1>
-            <p>临近高影响事件时，系统会主动降低预测置信度。</p>
+            <p>临近高影响事件时，系统会降低模型一致度，并对观察区间作事件风险调整。</p>
           </div>
           <span class="warning-pill">波动可能放大</span>
         </div>
@@ -277,6 +278,16 @@
             <strong id="pendingCount">0</strong>
             <small>到达评价日后更新结果</small>
           </article>
+          <article class="glass-card stat-card">
+            <span>平衡准确率</span>
+            <strong id="balancedAccuracy">—</strong>
+            <small>按上涨、震荡、下跌类别召回率平均</small>
+          </article>
+          <article class="glass-card stat-card">
+            <span>实际类别分布</span>
+            <strong id="classDistribution">—</strong>
+            <small>上涨 / 震荡 / 下跌；样本不足时不做概率校准</small>
+          </article>
         </div>
 
         <div class="validation-grid">
@@ -325,7 +336,7 @@
                 <tr>
                   <th>预测日</th>
                   <th>预测结果</th>
-                  <th>评分 / 置信度</th>
+                  <th>评分 / 模型一致度</th>
                   <th>起始价</th>
                   <th>评价日收盘</th>
                   <th>实际表现</th>
@@ -341,7 +352,7 @@
 
       <footer>
         <p id="disclaimer">本页面仅用于市场研究与信息整理，不构成投资建议或收益承诺。</p>
-        <span>PROTOTYPE · SCHEMA 1.0.0</span>
+        <span>PROTOTYPE · SCHEMA 1.1.0</span>
       </footer>
     </main>
 

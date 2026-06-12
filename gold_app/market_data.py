@@ -81,7 +81,7 @@ def fetch_yahoo_series(symbol: str) -> dict:
 
     current = float(meta.get("regularMarketPrice") or points[-1]["close"])
     previous = points[-2]["close"] if len(points) > 1 else None
-    five_day_base = points[-6]["close"] if len(points) > 5 else points[0]["close"]
+    five_day_base = points[-6]["close"] if len(points) > 5 else None
     recent_returns = []
     for left, right in zip(points[-21:-1], points[-20:]):
         change = _percent_change(right["close"], left["close"])
@@ -91,7 +91,7 @@ def fetch_yahoo_series(symbol: str) -> dict:
     recent_volumes = [point["volume"] for point in points[-6:-1] if point["volume"]]
     latest_volume = points[-1]["volume"]
     volume_change = None
-    if latest_volume and recent_volumes:
+    if latest_volume and recent_volumes and meta.get("marketState") != "REGULAR":
         volume_change = _percent_change(latest_volume, statistics.mean(recent_volumes))
 
     return {
@@ -101,7 +101,9 @@ def fetch_yahoo_series(symbol: str) -> dict:
         "change_5d": _safe_round(_percent_change(current, five_day_base)),
         "volume": latest_volume,
         "volume_change_5avg": _safe_round(volume_change),
-        "volatility_20d": _safe_round(statistics.pstdev(recent_returns) if recent_returns else 0, 6),
+        "volatility_20d": _safe_round(
+            statistics.pstdev(recent_returns) if len(recent_returns) >= 2 else None, 6
+        ),
         "updated_at": datetime.fromtimestamp(
             meta.get("regularMarketTime", timestamps[-1]), tz=timezone.utc
         ).isoformat(),
@@ -149,12 +151,12 @@ def _parse_treasury_series(xml_bytes: bytes, field: str) -> dict:
         raise FetchError(f"Treasury XML contains no {field}")
     latest = values[-1]
     previous = values[-2] if len(values) > 1 else None
-    five_day = values[-6] if len(values) > 5 else values[0]
+    five_day = values[-6] if len(values) > 5 else None
     return {
         "value": latest["value"],
         "updated_at": latest["date"],
         "change_1d": _safe_round(latest["value"] - previous["value"] if previous else None),
-        "change_5d": _safe_round(latest["value"] - five_day["value"]),
+        "change_5d": _safe_round(latest["value"] - five_day["value"] if five_day else None),
         "points": values,
         "source_name": "U.S. Department of the Treasury",
         "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates",
@@ -163,12 +165,23 @@ def _parse_treasury_series(xml_bytes: bytes, field: str) -> dict:
 
 def fetch_treasury_yields(year: int | None = None) -> dict:
     year = year or datetime.now(timezone.utc).year
-    real_xml = fetch_bytes(TREASURY_REAL.format(year=year), timeout=35)
-    nominal_xml = fetch_bytes(TREASURY_NOMINAL.format(year=year), timeout=35)
     return {
-        "real_10y": _parse_treasury_series(real_xml, "TC_10YEAR"),
-        "nominal_10y": _parse_treasury_series(nominal_xml, "BC_10YEAR"),
+        "real_10y": fetch_treasury_series("real_10y", year),
+        "nominal_10y": fetch_treasury_series("nominal_10y", year),
     }
+
+
+def fetch_treasury_series(key: str, year: int | None = None) -> dict:
+    year = year or datetime.now(timezone.utc).year
+    if key == "real_10y":
+        return _parse_treasury_series(
+            fetch_bytes(TREASURY_REAL.format(year=year), timeout=35), "TC_10YEAR"
+        )
+    if key == "nominal_10y":
+        return _parse_treasury_series(
+            fetch_bytes(TREASURY_NOMINAL.format(year=year), timeout=35), "BC_10YEAR"
+        )
+    raise ValueError(f"Unsupported Treasury series: {key}")
 
 
 def collect_market_data() -> dict:
@@ -192,10 +205,17 @@ def collect_market_data() -> dict:
             except Exception as exc:
                 errors[key] = str(exc)
 
-    try:
-        data.update(fetch_treasury_yields())
-    except Exception as exc:
-        errors["treasury"] = str(exc)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = {
+            executor.submit(fetch_treasury_series, key): key
+            for key in ("real_10y", "nominal_10y")
+        }
+        for future in as_completed(futures):
+            key = futures[future]
+            try:
+                data[key] = future.result()
+            except Exception as exc:
+                errors[key] = str(exc)
 
     return {
         "collected_at": datetime.now(timezone.utc).isoformat(),

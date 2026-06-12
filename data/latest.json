@@ -1,17 +1,17 @@
 {
   "schema_version": "1.1.0",
-  "model_version": "rules-v1.0.0",
-  "analysis_id": "gold-2026-06-12T12:50:51+08:00",
-  "generated_at": "2026-06-12T12:50:51+08:00",
-  "market_as_of": "2026-06-12T04:40:32+00:00",
+  "model_version": "rules-v1.2.0",
+  "analysis_id": "gold-2026-06-12T13:39:54+08:00",
+  "generated_at": "2026-06-12T13:39:54+08:00",
+  "market_as_of": "2026-06-12T05:29:47+00:00",
   "timezone": "Asia/Shanghai",
   "instrument": {
     "symbol": "COMEX GC",
     "name": "COMEX黄金期货",
     "currency": "USD",
-    "price": 4216.3,
+    "price": 4208.6,
     "change": null,
-    "change_percent": 3.0805,
+    "change_percent": 2.8922,
     "session": "最新可用行情"
   },
   "market_quotes": [
@@ -19,10 +19,10 @@
       "symbol": "XAUUSD",
       "name": "国际现货黄金",
       "description": "国际现货黄金兑美元报价",
-      "price": 4192.0,
+      "price": 4177.9,
       "unit": "USD/oz",
       "change_percent": null,
-      "updated_at": "2026-06-12T04:50:22Z",
+      "updated_at": "2026-06-12T05:39:22Z",
       "source_name": "Gold API",
       "source_url": "https://api.gold-api.com/price/XAU"
     },
@@ -31,28 +31,40 @@
       "name": "COMEX黄金期货",
       "description": "纽约商品交易所黄金主力期货合约",
       "contract": "GC主力",
-      "price": 4216.3,
+      "price": 4208.6,
       "unit": "USD/oz",
-      "change_percent": 3.0805,
-      "basis": 24.3,
-      "updated_at": "2026-06-12T04:40:32+00:00",
+      "change_percent": 2.8922,
+      "basis": 30.7,
+      "updated_at": "2026-06-12T05:29:47+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/GC%3DF"
     }
   ],
   "forecast": {
     "horizon": "未来5个交易日",
+    "horizon_trading_days": 5,
     "direction": "震荡",
     "direction_code": "neutral",
     "score": 2,
-    "confidence": 41,
+    "signal_strength": 36,
+    "confidence": 36,
+    "confidence_is_probability": false,
+    "strength_label": "模型一致度",
+    "strength_method": "启发式评分，未经过历史概率校准",
+    "event_risk_penalty": 5,
     "benchmark_symbol": "COMEX GC",
     "benchmark_name": "COMEX黄金期货",
+    "benchmark_contract": "GC=F",
+    "benchmark_type": "continuous_front_month",
+    "roll_adjusted": false,
     "summary": "四因素综合评分为+2，当前判断为震荡。数据完整度100%，双参考系用于校验跨市场一致性。",
     "expected_range": {
-      "low": 4046.88,
-      "high": 4385.72,
-      "unit": "USD/oz"
+      "low": 4008.42,
+      "high": 4408.78,
+      "unit": "USD/oz",
+      "method": "20日历史波动率启发式区间",
+      "event_adjusted": true,
+      "historical_coverage": null
     }
   },
   "factors": [
@@ -78,12 +90,12 @@
     },
     {
       "id": "fund_flow",
-      "name": "ETF与期货资金流",
+      "name": "黄金市场量价动能",
       "weight": 30,
       "score": -10,
       "signal": "轻微偏空",
       "signal_code": "slightly_bearish",
-      "summary": "GLD与COMEX黄金的量价趋势。",
+      "summary": "GLD与COMEX黄金的量价动能，不代表ETF净申购或期货持仓方向。",
       "data_completeness": 100
     },
     {
@@ -93,7 +105,7 @@
       "score": 6,
       "signal": "偏多",
       "signal_code": "bullish",
-      "summary": "全球央行整体保持净购金。该项为月度人工配置，后续接入公开月报。",
+      "summary": "全球央行整体保持净购金。人工配置将在到期后自动失效。",
       "data_completeness": 100
     }
   ],
@@ -111,28 +123,28 @@
         {
           "symbol": "WTI",
           "name": "WTI原油",
-          "value": 86.24,
+          "value": 85.92,
           "unit": "USD/bbl",
-          "change_1d": -1.676,
-          "change_5d": -4.7493,
+          "change_1d": -2.0408,
+          "change_5d": -5.1027,
           "trend": "下跌"
         },
         {
           "symbol": "SI",
           "name": "COMEX白银",
-          "value": 67.095,
+          "value": 66.985,
           "unit": "USD/oz",
-          "change_1d": 5.0247,
-          "change_5d": -2.6805,
+          "change_1d": 4.8525,
+          "change_5d": -2.84,
           "trend": "下跌"
         },
         {
           "symbol": "HG",
           "name": "COMEX铜",
-          "value": 6.415,
+          "value": 6.407,
           "unit": "USD/lb",
-          "change_1d": 2.4924,
-          "change_5d": 2.4188,
+          "change_1d": 2.3646,
+          "change_5d": 2.291,
           "trend": "上涨"
         }
       ],
@@ -151,46 +163,46 @@
         {
           "symbol": "EURUSD",
           "name": "欧元/美元",
-          "value": 1.1577,
+          "value": 1.1567,
           "unit": "",
-          "change_1d": 0.3587,
-          "change_5d": -0.307,
-          "trend": "震荡"
+          "change_1d": 0.272,
+          "change_5d": -0.3931,
+          "trend": "欧元走弱"
         },
         {
           "symbol": "GBPUSD",
           "name": "英镑/美元",
-          "value": 1.3415,
+          "value": 1.3403,
           "unit": "",
-          "change_1d": 0.3965,
-          "change_5d": -0.0894,
+          "change_1d": 0.3067,
+          "change_5d": -0.1787,
           "trend": "震荡"
         },
         {
           "symbol": "AUDUSD",
           "name": "澳元/美元",
-          "value": 0.7045,
+          "value": 0.7034,
           "unit": "",
-          "change_1d": 0.7263,
-          "change_5d": -1.2221,
+          "change_1d": 0.569,
+          "change_5d": -1.3763,
           "trend": "澳元走弱"
         },
         {
           "symbol": "USDJPY",
           "name": "美元/日元",
-          "value": 160.23,
+          "value": 160.298,
           "unit": "",
-          "change_1d": -0.185,
-          "change_5d": 0.15,
+          "change_1d": -0.1427,
+          "change_5d": 0.1925,
           "trend": "震荡"
         },
         {
           "symbol": "USDCAD",
           "name": "美元/加元",
-          "value": 1.3969,
+          "value": 1.3981,
           "unit": "",
-          "change_1d": 0.1592,
-          "change_5d": 0.453,
+          "change_1d": 0.2452,
+          "change_5d": 0.5393,
           "trend": "美元走弱"
         }
       ],
@@ -211,7 +223,7 @@
       "factor_id": "stocks"
     },
     {
-      "title": "COMEX成交量",
+      "title": "COMEX成交量相对均量",
       "detail": "该指标当前为黄金综合评分贡献 +5.0 分。",
       "impact": 5,
       "factor_id": "fund_flow"
@@ -234,18 +246,30 @@
       "severity": "medium"
     }
   ],
-  "events": [],
+  "events": [
+    {
+      "name": "FOMC利率决议与经济预测",
+      "scheduled_at": "2026-06-18T02:00:00+08:00",
+      "importance": "high",
+      "expected_effect": "利率路径、点阵图和鲍威尔表态可能放大美元、实际利率与黄金波动",
+      "meeting_window": "2026-06-16至2026-06-17（美国东部时间）",
+      "source_name": "Federal Reserve",
+      "source_url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    }
+  ],
   "indicators": [
     {
       "id": "gc",
       "name": "COMEX黄金期货",
       "group": "market",
-      "value": 4216.3,
+      "value": 4208.6,
       "unit": "USD/oz",
-      "change_1d": 3.0805,
-      "change_5d": -2.7853,
-      "signal": "偏空",
-      "updated_at": "2026-06-12T04:40:32+00:00",
+      "change_1d": 2.8922,
+      "change_5d": -2.9628,
+      "signal": "利空黄金",
+      "gold_sensitivity": "direct",
+      "signal_rationale": "黄金期货上涨通常直接利多黄金",
+      "updated_at": "2026-06-12T05:29:47+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/GC%3DF",
       "status": "ok"
@@ -258,7 +282,9 @@
       "unit": "%",
       "change_1d": -0.05,
       "change_5d": 0.05,
-      "signal": "中性",
+      "signal": "利空黄金",
+      "gold_sensitivity": "inverse",
+      "signal_rationale": "实际利率上升通常提高持有黄金的机会成本",
       "updated_at": "2026-06-11",
       "source_name": "U.S. Department of the Treasury",
       "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates",
@@ -273,6 +299,8 @@
       "change_1d": -0.1,
       "change_5d": -0.02,
       "signal": "中性",
+      "gold_sensitivity": "inverse",
+      "signal_rationale": "美债收益率上升通常对无息黄金构成压力",
       "updated_at": "2026-06-11",
       "source_name": "U.S. Department of the Treasury",
       "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates",
@@ -282,12 +310,14 @@
       "id": "dxy",
       "name": "美元指数",
       "group": "fed",
-      "value": 99.753,
+      "value": 99.822,
       "unit": "",
-      "change_1d": -0.1072,
-      "change_5d": -0.3168,
-      "signal": "偏空",
-      "updated_at": "2026-06-12T04:40:45+00:00",
+      "change_1d": -0.0381,
+      "change_5d": -0.2478,
+      "signal": "中性",
+      "gold_sensitivity": "inverse",
+      "signal_rationale": "美元走强通常压制美元计价黄金",
+      "updated_at": "2026-06-12T05:29:48+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/DX-Y.NYB",
       "status": "ok"
@@ -300,7 +330,9 @@
       "unit": "",
       "change_1d": 1.7519,
       "change_5d": -2.5053,
-      "signal": "偏空",
+      "signal": "利多黄金",
+      "gold_sensitivity": "inverse",
+      "signal_rationale": "美股走弱可能提升避险需求",
       "updated_at": "2026-06-11T20:56:18+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/%5EGSPC",
@@ -314,7 +346,9 @@
       "unit": "",
       "change_1d": 2.5434,
       "change_5d": -3.8064,
-      "signal": "偏空",
+      "signal": "利多黄金",
+      "gold_sensitivity": "inverse",
+      "signal_rationale": "成长股走弱可能提升避险需求",
       "updated_at": "2026-06-11T21:15:59+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/%5EIXIC",
@@ -328,7 +362,9 @@
       "unit": "",
       "change_1d": -12.5112,
       "change_5d": 26.2338,
-      "signal": "偏多",
+      "signal": "利多黄金",
+      "gold_sensitivity": "direct",
+      "signal_rationale": "波动率上升通常提升避险需求",
       "updated_at": "2026-06-11T20:15:01+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/%5EVIX",
@@ -342,7 +378,9 @@
       "unit": "USD",
       "change_1d": 3.1342,
       "change_5d": -6.0666,
-      "signal": "偏空",
+      "signal": "利空黄金",
+      "gold_sensitivity": "direct",
+      "signal_rationale": "GLD价格上涨反映黄金市场价格动能",
       "updated_at": "2026-06-11T20:00:00+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/GLD",
@@ -352,12 +390,14 @@
       "id": "wti",
       "name": "WTI原油",
       "group": "commodities",
-      "value": 86.24,
+      "value": 85.92,
       "unit": "USD/bbl",
-      "change_1d": -1.676,
-      "change_5d": -4.7493,
-      "signal": "偏空",
-      "updated_at": "2026-06-12T04:40:45+00:00",
+      "change_1d": -2.0408,
+      "change_5d": -5.1027,
+      "signal": "利空黄金",
+      "gold_sensitivity": "direct",
+      "signal_rationale": "油价上涨可能抬升通胀预期，但关系并不稳定",
+      "updated_at": "2026-06-12T05:29:47+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/CL%3DF",
       "status": "ok"
@@ -366,12 +406,14 @@
       "id": "silver",
       "name": "COMEX白银",
       "group": "commodities",
-      "value": 67.095,
+      "value": 66.985,
       "unit": "USD/oz",
-      "change_1d": 5.0247,
-      "change_5d": -2.6805,
-      "signal": "偏空",
-      "updated_at": "2026-06-12T04:39:49+00:00",
+      "change_1d": 4.8525,
+      "change_5d": -2.84,
+      "signal": "利空黄金",
+      "gold_sensitivity": "direct",
+      "signal_rationale": "白银走强可作为贵金属风险偏好的参考",
+      "updated_at": "2026-06-12T05:29:16+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/SI%3DF",
       "status": "ok"
@@ -380,24 +422,224 @@
       "id": "copper",
       "name": "COMEX铜",
       "group": "commodities",
-      "value": 6.415,
+      "value": 6.407,
       "unit": "USD/lb",
-      "change_1d": 2.4924,
-      "change_5d": 2.4188,
-      "signal": "偏多",
-      "updated_at": "2026-06-12T04:39:53+00:00",
+      "change_1d": 2.3646,
+      "change_5d": 2.291,
+      "signal": "利多黄金",
+      "gold_sensitivity": "direct",
+      "signal_rationale": "铜价仅作为商品广度参考，不直接代表黄金方向",
+      "updated_at": "2026-06-12T05:29:42+00:00",
       "source_name": "Yahoo Finance",
       "source_url": "https://finance.yahoo.com/quote/HG%3DF",
       "status": "ok"
+    },
+    {
+      "id": "fed_policy",
+      "name": "美联储政策人工评分",
+      "group": "fed",
+      "value": -2,
+      "unit": "score",
+      "change_1d": null,
+      "change_5d": null,
+      "signal": "轻微偏空",
+      "gold_sensitivity": "manual",
+      "signal_rationale": "FOMC会议前维持轻微偏鹰的人工判断；决议发布后必须重新评估。",
+      "updated_at": "2026-06-01",
+      "source_name": "Federal Reserve FOMC Calendar",
+      "source_url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "status": "ok",
+      "data_period": "2026-06 FOMC会前",
+      "owner": "Aurum Signal 模型维护",
+      "expires_at": "2026-06-18T02:00:00+08:00"
+    },
+    {
+      "id": "central_bank",
+      "name": "全球央行购金人工评分",
+      "group": "central_bank",
+      "value": 6,
+      "unit": "score",
+      "change_1d": null,
+      "change_5d": null,
+      "signal": "偏多",
+      "gold_sensitivity": "manual",
+      "signal_rationale": "WGC报告显示2026年一季度央行净购金约244吨，因此保留中等偏多评分；该分数是人工规则输入，不是实时央行流量。",
+      "updated_at": "2026-06-01",
+      "source_name": "World Gold Council Gold Demand Trends Q1 2026",
+      "source_url": "https://www.gold.org/goldhub/research/gold-demand-trends/gold-demand-trends-q1-2026",
+      "status": "ok",
+      "data_period": "2026-Q1",
+      "owner": "Aurum Signal 模型维护",
+      "expires_at": "2026-07-31T23:59:59+08:00"
     }
   ],
+  "model_governance": {
+    "manual_inputs": {
+      "fed_policy": {
+        "source_name": "Federal Reserve FOMC Calendar",
+        "source_url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "data_period": "2026-06 FOMC会前",
+        "owner": "Aurum Signal 模型维护",
+        "updated_at": "2026-06-01",
+        "expires_at": "2026-06-18T02:00:00+08:00",
+        "rationale": "FOMC会议前维持轻微偏鹰的人工判断；决议发布后必须重新评估。"
+      },
+      "central_bank": {
+        "source_name": "World Gold Council Gold Demand Trends Q1 2026",
+        "source_url": "https://www.gold.org/goldhub/research/gold-demand-trends/gold-demand-trends-q1-2026",
+        "data_period": "2026-Q1",
+        "owner": "Aurum Signal 模型维护",
+        "updated_at": "2026-06-01",
+        "expires_at": "2026-07-31T23:59:59+08:00",
+        "rationale": "WGC报告显示2026年一季度央行净购金约244吨，因此保留中等偏多评分；该分数是人工规则输入，不是实时央行流量。"
+      }
+    },
+    "planned_sources": [
+      {
+        "id": "cftc_managed_money",
+        "name": "CFTC管理基金净多仓",
+        "frequency": "weekly",
+        "status": "planned",
+        "source_name": "U.S. Commodity Futures Trading Commission",
+        "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalCompressed/index.htm"
+      },
+      {
+        "id": "gld_holdings",
+        "name": "GLD份额与持仓吨数变化",
+        "frequency": "daily",
+        "status": "planned",
+        "source_name": "SPDR Gold Shares",
+        "source_url": "https://www.spdrgoldshares.com/usa/"
+      }
+    ],
+    "probability_calibrated": false,
+    "minimum_calibration_samples": 100
+  },
   "data_quality": {
     "completeness": 100,
     "freshness": 100,
     "missing_count": 0,
     "delayed_count": 0,
+    "delayed_inputs": [],
+    "oldest_core_data_at": "2026-06-01T00:00:00+00:00",
+    "freshness_by_source": {
+      "spot": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:39:22+00:00",
+        "age_hours": 0.0
+      },
+      "gc": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:29:47+00:00",
+        "age_hours": 0.2
+      },
+      "gld": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-11T20:00:00+00:00",
+        "age_hours": 9.7
+      },
+      "sp500": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-11T20:56:18+00:00",
+        "age_hours": 8.7
+      },
+      "nasdaq": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-11T21:15:59+00:00",
+        "age_hours": 8.4
+      },
+      "vix": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-11T20:15:01+00:00",
+        "age_hours": 9.4
+      },
+      "dxy": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:29:48+00:00",
+        "age_hours": 0.2
+      },
+      "wti": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:29:47+00:00",
+        "age_hours": 0.2
+      },
+      "silver": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:29:16+00:00",
+        "age_hours": 0.2
+      },
+      "copper": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:29:42+00:00",
+        "age_hours": 0.2
+      },
+      "eurusd": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:39:05+00:00",
+        "age_hours": 0.0
+      },
+      "gbpusd": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:39:05+00:00",
+        "age_hours": 0.0
+      },
+      "audusd": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:39:05+00:00",
+        "age_hours": 0.0
+      },
+      "usdjpy": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:39:50+00:00",
+        "age_hours": 0.0
+      },
+      "usdcad": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-12T05:39:49+00:00",
+        "age_hours": 0.0
+      },
+      "real_10y": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-11T00:00:00+00:00",
+        "age_hours": 29.7
+      },
+      "nominal_10y": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-11T00:00:00+00:00",
+        "age_hours": 29.7
+      },
+      "fed_policy": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-01T00:00:00+00:00",
+        "age_hours": 269.7
+      },
+      "central_bank": {
+        "score": 100,
+        "status": "ok",
+        "updated_at": "2026-06-01T00:00:00+00:00",
+        "age_hours": 269.7
+      }
+    },
     "status": "good",
-    "message": "核心数据获取正常。"
+    "message": "核心数据在各自有效期内；最旧核心输入为2026-06-01T00:00:00+00:00。"
   },
   "disclaimer": "本页面仅用于市场研究与信息整理，不构成投资建议或收益承诺。",
   "validation_history": {
@@ -405,7 +647,39 @@
       "horizon_trading_days": 5,
       "bullish_threshold": 0.5,
       "bearish_threshold": -0.5,
-      "description": "使用预测后第5个交易日收盘价验证；收益率≥+0.5%为上涨，≤-0.5%为下跌，其余为震荡。"
+      "description": "使用预测后第5个交易日收盘价验证；收益率≥+0.5%为上涨，≤-0.5%为下跌，其余为震荡。",
+      "price_basis": "生成时行情报价到第5个交易日收盘价",
+      "settlement_comparable": false,
+      "roll_adjusted": false
+    },
+    "metrics": {
+      "sample_count": 0,
+      "direction_accuracy": null,
+      "balanced_accuracy": null,
+      "range_coverage": null,
+      "class_distribution": {
+        "bullish": 0,
+        "neutral": 0,
+        "bearish": 0
+      },
+      "confusion_matrix": {
+        "bullish": {
+          "bullish": 0,
+          "neutral": 0,
+          "bearish": 0
+        },
+        "neutral": {
+          "bullish": 0,
+          "neutral": 0,
+          "bearish": 0
+        },
+        "bearish": {
+          "bullish": 0,
+          "neutral": 0,
+          "bearish": 0
+        }
+      },
+      "probability_calibration_ready": false
     },
     "records": [
       {
@@ -433,7 +707,16 @@
           "direction_hit": null,
           "range_hit": null
         },
-        "model_version": "rules-v1.0.0"
+        "model_version": "rules-v1.0.0",
+        "evaluation_rule": {
+          "horizon_trading_days": 5,
+          "bullish_threshold": 0.5,
+          "bearish_threshold": -0.5,
+          "description": "使用预测后第5个交易日收盘价验证；收益率≥+0.5%为上涨，≤-0.5%为下跌，其余为震荡。",
+          "price_basis": "生成时行情报价到第5个交易日收盘价",
+          "settlement_comparable": false,
+          "roll_adjusted": false
+        }
       }
     ]
   }

@@ -44,7 +44,9 @@
 | `direction` | string | 中文结论 |
 | `direction_code` | enum | `strong_bullish`、`cautiously_bullish`、`neutral`、`cautiously_bearish`、`strong_bearish` |
 | `score` | integer | 综合分，范围 `-100～100` |
-| `confidence` | integer | 可信度，范围 `20～90`，不等同上涨概率 |
+| `signal_strength` | integer | 模型一致度，范围 `20～90`，是启发式强度而非正确概率 |
+| `confidence` | integer | 兼容字段，与 `signal_strength` 相同；不得解释为概率 |
+| `confidence_is_probability` | boolean | 当前固定为 `false` |
 | `benchmark_symbol` | string | 预测和历史验证使用的价格基准 |
 | `benchmark_name` | string | 基准展示名称；首版真实数据使用 COMEX黄金期货 |
 | `summary` | string | 一句话解释 |
@@ -181,7 +183,9 @@
 | `unit` | string | 单位 |
 | `change_1d` | number/null | 1日变化；价格类默认使用百分比，利率类使用百分点 |
 | `change_5d` | number/null | 5日变化 |
-| `signal` | string | 对黄金的方向解释 |
+| `signal` | string | 对黄金的方向解释，必须应用该指标的黄金敏感度 |
+| `gold_sensitivity` | enum | `direct`、`inverse` 或 `manual` |
+| `signal_rationale` | string | 指标变化如何映射为黄金信号的说明 |
 | `updated_at` | datetime/date/null | 数据时间 |
 | `source_name` | string | 来源名称 |
 | `source_url` | string | 来源链接 |
@@ -207,6 +211,9 @@
 | `freshness` | integer | 按各指标更新频率计算的新鲜度 |
 | `missing_count` | integer | 缺失指标数量 |
 | `delayed_count` | integer | 延迟指标数量 |
+| `delayed_inputs` | array | 延迟输入代码 |
+| `oldest_core_data_at` | datetime/null | 最旧核心输入时间，不等同于黄金基准行情时间 |
+| `freshness_by_source` | object | 按各来源频率计算的状态、年龄和新鲜度 |
 | `status` | enum | `good`、`degraded`、`poor` |
 | `message` | string | 面向用户的数据质量说明 |
 
@@ -283,3 +290,17 @@
 ```
 
 本地实现建议每天保存一份预测快照，文件一旦生成不得因后续规则调整而覆盖，否则会产生回看偏差。若规则版本变化，应同时保存 `schema_version` 和模型版本。
+
+### validation_history.metrics
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `sample_count` | integer | 已验证样本量 |
+| `direction_accuracy` | number/null | 总体方向准确率 |
+| `balanced_accuracy` | number/null | 各实际类别召回率的平均值 |
+| `range_coverage` | number/null | 有区间结果记录的覆盖率 |
+| `class_distribution` | object | 实际上涨、震荡、下跌样本数 |
+| `confusion_matrix` | object | 预测类别到实际类别的混淆矩阵 |
+| `probability_calibration_ready` | boolean | 非重叠样本达到校准要求前保持 `false` |
+
+历史记录同时保存 `input_snapshot`、具体基准代码、连续合约类型和是否换月调整。当前 Yahoo `GC=F` 属于连续主力序列，`roll_adjusted=false`，因此页面不得将历史结果描述为严格可比的固定合约结算回测。

@@ -32,6 +32,9 @@ const signed = (value, suffix = "") => {
   return `${prefix}${number.format(value)}${suffix}`;
 };
 
+const formatted = (value, suffix = "") =>
+  value === null || value === undefined ? "—" : `${number.format(value)}${suffix}`;
+
 const escapeHtml = (value) =>
   String(value)
     .replaceAll("&", "&amp;")
@@ -79,7 +82,7 @@ function renderMarketQuotes(data) {
             </div>
           </div>
           <div class="ticker-price">
-            <strong>${number.format(quote.price)}</strong>
+            <strong>${formatted(quote.price)}</strong>
             <span>${escapeHtml(quote.unit)}</span>
             <em>${signed(quote.change_percent, "%")}</em>
           </div>
@@ -102,6 +105,7 @@ function formatDateOnly(value) {
 function renderHistory(history) {
   if (!history || !history.records) return;
   const records = history.records;
+  const metrics = history.metrics || {};
   const evaluated = records.filter((record) => record.outcome.status === "evaluated");
   const pending = records.filter((record) => record.outcome.status === "pending");
   const directionHits = evaluated.filter((record) => record.outcome.direction_hit).length;
@@ -115,6 +119,14 @@ function renderHistory(history) {
     evaluated.length ? `${rangeAccuracy.toFixed(1)}%` : "—";
   document.getElementById("evaluatedCount").textContent = evaluated.length;
   document.getElementById("pendingCount").textContent = pending.length;
+  document.getElementById("balancedAccuracy").textContent =
+    metrics.balanced_accuracy === null || metrics.balanced_accuracy === undefined
+      ? "—"
+      : `${metrics.balanced_accuracy.toFixed(1)}%`;
+  const distribution = metrics.class_distribution;
+  document.getElementById("classDistribution").textContent = distribution
+    ? `${distribution.bullish}/${distribution.neutral}/${distribution.bearish}`
+    : "—";
   document.getElementById("accuracyRing").style.setProperty(
     "--accuracy-angle",
     `${directionAccuracy * 3.6}deg`
@@ -123,7 +135,9 @@ function renderHistory(history) {
     history.evaluation_rule.description;
 
   let conclusion = "暂无足够记录，暂不能判断系统有效性。";
-  if (evaluated.length > 0 && evaluated.length < 20) {
+  if (evaluated.length === 0) {
+    conclusion = "暂无已验证样本，不能评价准确率、校准度或区间覆盖率。";
+  } else if (evaluated.length < 20) {
     conclusion = `当前命中 ${directionHits}/${evaluated.length} 次，准确率 ${directionAccuracy.toFixed(1)}%。样本仍少，只能作为初步观察。`;
   } else if (directionAccuracy >= 65) {
     conclusion = `当前准确率 ${directionAccuracy.toFixed(1)}%，表现具有一定参考价值，仍需结合回撤与更多样本验证。`;
@@ -170,8 +184,8 @@ function renderHistoryRows(records) {
             <small>${escapeHtml(record.horizon)}</small>
           </td>
           <td class="numeric">${signed(record.prediction.score, "")} / ${record.prediction.confidence}%</td>
-          <td class="numeric">${number.format(record.prediction.start_price)}</td>
-          <td class="numeric">${isPending ? "—" : number.format(outcome.close_price)}<br><small>${formatDateOnly(record.evaluation_date)}</small></td>
+          <td class="numeric">${formatted(record.prediction.start_price)}</td>
+          <td class="numeric">${isPending ? "—" : formatted(outcome.close_price)}<br><small>${formatDateOnly(record.evaluation_date)}</small></td>
           <td class="${returnClass}">
             ${isPending ? "等待收盘" : `${escapeHtml(outcome.actual_direction)} ${signed(outcome.return_percent, "%")}`}
           </td>
@@ -201,14 +215,21 @@ function render(data) {
   document.getElementById("driverPageScore").textContent = signed(data.forecast.score);
   document.getElementById("scoreMarker").style.left =
     `${Math.max(0, Math.min(100, (data.forecast.score + 100) / 2))}%`;
-  document.getElementById("confidence").textContent = data.forecast.confidence;
-  document.getElementById("confidenceBar").style.width = `${data.forecast.confidence}%`;
+  const signalStrength = data.forecast.signal_strength ?? data.forecast.confidence;
+  document.getElementById("confidence").textContent = signalStrength;
+  document.getElementById("confidenceBar").style.width = `${signalStrength}%`;
   document.getElementById("summary").textContent = data.forecast.summary;
   document.getElementById("benchmarkName").textContent =
     data.forecast.benchmark_name || data.instrument.name;
+  const expectedRange = data.forecast.expected_range;
   document.getElementById("expectedRange").textContent =
-    `$${number.format(data.forecast.expected_range.low)} — ` +
-    `$${number.format(data.forecast.expected_range.high)}`;
+    expectedRange.low === null || expectedRange.high === null
+      ? "—"
+      : `$${number.format(expectedRange.low)} — $${number.format(expectedRange.high)}`;
+  document.getElementById("rangeMethod").textContent =
+    expectedRange.event_adjusted
+      ? "已纳入近期高影响事件放大；非统计置信区间"
+      : "启发式观察区间；历史覆盖率尚未校准";
 
   document.getElementById("eventList").innerHTML = data.events
     .map((event) => {
@@ -219,6 +240,7 @@ function render(data) {
           <div>
             <strong>${escapeHtml(event.name)}</strong>
             <small>${escapeHtml(event.expected_effect)}</small>
+            ${event.source_url ? `<a class="event-source" href="${escapeHtml(event.source_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(event.source_name || "官方来源")}</a>` : ""}
           </div>
           <span class="event-level">${event.importance === "high" ? "高影响" : "关注"}</span>
         </div>
@@ -271,6 +293,7 @@ function render(data) {
 
   document.getElementById("completeness").textContent = `${data.data_quality.completeness}%`;
   document.getElementById("freshness").textContent = `${data.data_quality.freshness}%`;
+  document.getElementById("delayedCount").textContent = data.data_quality.delayed_count;
   document.getElementById("qualityMessage").textContent = data.data_quality.message;
 
   document.getElementById("driverCount").textContent = String(data.drivers.length).padStart(2, "0");
@@ -307,7 +330,7 @@ function render(data) {
           <td class="numeric">${item.value === null ? "—" : `${number.format(item.value)} ${escapeHtml(item.unit)}`}</td>
           <td class="numeric ${changeClass}">${signed(item.change_1d)}</td>
           <td class="numeric">${signed(item.change_5d)}</td>
-          <td>${escapeHtml(item.signal)}</td>
+          <td title="${escapeHtml(item.signal_rationale || "")}">${escapeHtml(item.signal)}</td>
           <td class="numeric">${item.updated_at ? escapeHtml(shortDate.format(new Date(item.updated_at))) : "—"}</td>
           <td>
             <span class="status-cell status-${item.status}">
@@ -344,7 +367,7 @@ function openReferenceDrawer(referenceId) {
               <small>${escapeHtml(item.symbol)}</small>
             </div>
             <div class="component-value">
-              <strong>${number.format(item.value)} ${escapeHtml(item.unit)}</strong>
+              <strong>${formatted(item.value, item.value === null || item.value === undefined ? "" : ` ${escapeHtml(item.unit)}`)}</strong>
               <small>${escapeHtml(item.trend)}</small>
             </div>
           </div>
@@ -415,7 +438,13 @@ async function loadData({ refresh = false, allowMockFallback = false } = {}) {
   try {
     const data = await requestAnalysis(refresh);
     render(data);
-    document.querySelector(".market-status").innerHTML = "<i></i> 真实数据";
+    const qualityLabel =
+      data.data_quality?.status === "good"
+        ? "数据正常"
+        : data.data_quality?.status === "degraded"
+          ? "数据降级"
+          : "数据不足";
+    document.querySelector(".market-status").innerHTML = `<i></i> ${qualityLabel}`;
     if (data._warning) showToast(data._warning);
     return data;
   } catch (error) {
@@ -473,7 +502,7 @@ document.getElementById("refreshButton").addEventListener("click", async (event)
 
 loadData({ allowMockFallback: true })
   .then((data) => {
-    const isMock = data.schema_version === "1.0.0";
+    const isMock = data.data_mode === "mock";
     showToast(isMock ? "当前为原型回退数据" : "真实市场数据已载入");
   })
   .catch((error) => showToast(`数据载入失败：${error.message}`));

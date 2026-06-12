@@ -658,6 +658,8 @@ button, a { font: inherit; }
 .event-item strong, .event-item small { display: block; }
 .event-item strong { font-size: 13px; }
 .event-item small { margin-top: 5px; color: var(--muted); font-size: 10px; }
+.event-source { display: inline-block; margin-top: 7px; color: var(--gold-soft); font-size: 9px; text-decoration: none; }
+.event-source:hover { text-decoration: underline; }
 .event-level { color: var(--orange); border: 1px solid rgba(255,171,92,.18); border-radius: 99px; padding: 6px 9px; font-size: 8px; }
 
 .legend { gap: 14px; color: var(--muted); font-size: 9px; }

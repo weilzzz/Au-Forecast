@@ -14,12 +14,14 @@ from gold_app.service import generate_analysis, load_latest
 ROOT = Path(__file__).resolve().parent
 STATIC_ROOT = ROOT / "prototype"
 analysis_lock = threading.Lock()
+analysis_condition = threading.Condition(analysis_lock)
 analysis_cache: dict | None = None
+analysis_refreshing = False
 
 
 def get_analysis(refresh: bool = False) -> dict:
-    global analysis_cache
-    with analysis_lock:
+    global analysis_cache, analysis_refreshing
+    with analysis_condition:
         if not refresh and analysis_cache is not None:
             return analysis_cache
         if not refresh:
@@ -27,8 +29,31 @@ def get_analysis(refresh: bool = False) -> dict:
             if latest is not None:
                 analysis_cache = latest
                 return latest
-        analysis_cache = generate_analysis()
-        return analysis_cache
+        if analysis_refreshing:
+            analysis_condition.wait_for(lambda: not analysis_refreshing)
+            if analysis_cache is not None:
+                return analysis_cache
+        analysis_refreshing = True
+    try:
+        result = generate_analysis()
+    except Exception:
+        with analysis_condition:
+            analysis_refreshing = False
+            analysis_condition.notify_all()
+        raise
+    with analysis_condition:
+        analysis_cache = result
+        analysis_refreshing = False
+        analysis_condition.notify_all()
+        return result
+
+
+def _public_error(code: str) -> dict:
+    messages = {
+        "analysis_unavailable": "Analysis is temporarily unavailable.",
+        "refresh_failed": "Refresh failed. Please try again later.",
+    }
+    return {"error": code, "message": messages[code]}
 
 
 class AurumHandler(SimpleHTTPRequestHandler):
@@ -66,11 +91,12 @@ class AurumHandler(SimpleHTTPRequestHandler):
             except Exception as exc:
                 latest = load_latest()
                 if latest:
-                    latest["_warning"] = f"实时更新失败，显示上次成功结果：{exc}"
+                    latest = dict(latest)
+                    latest["_warning"] = "Live refresh failed; showing the last successful result."
                     self._json(latest)
                 else:
                     self._json(
-                        {"error": "analysis_unavailable", "message": str(exc)},
+                        _public_error("analysis_unavailable"),
                         HTTPStatus.SERVICE_UNAVAILABLE,
                     )
             return
@@ -85,7 +111,7 @@ class AurumHandler(SimpleHTTPRequestHandler):
             self._json(get_analysis(refresh=True))
         except Exception as exc:
             self._json(
-                {"error": "refresh_failed", "message": str(exc)},
+                _public_error("refresh_failed"),
                 HTTPStatus.SERVICE_UNAVAILABLE,
             )
 
