@@ -1,0 +1,16 @@
+{
+  "name": "aurum-signal-netlify",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/prepare-netlify.mjs",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@netlify/blobs": "^10.0.10",
+    "@netlify/functions": "^4.2.5",
+    "@types/node": "^24.10.1",
+    "fast-xml-parser": "^5.3.2",
+    "netlify-cli": "^23.9.3",
+    "typescript": "^5.9.3"
+  }
+}

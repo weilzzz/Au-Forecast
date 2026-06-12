@@ -13,3 +13,6 @@ __pycache__/
 .coverage
 htmlcov/
 
+node_modules/
+.netlify/
+dist/
