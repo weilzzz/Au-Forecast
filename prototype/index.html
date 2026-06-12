@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="基于四因素与双参考系的黄金中短期趋势分析原型">
+    <title>Aurum Signal · 黄金趋势雷达</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="ambient" aria-hidden="true">
+      <i class="glow glow-one"></i>
+      <i class="glow glow-two"></i>
+      <i class="grid-light"></i>
+    </div>
+
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Aurum Signal 首页">
+        <span class="brand-mark">Au</span>
+        <span>
+          <strong>Aurum Signal</strong>
+          <small>黄金趋势雷达</small>
+        </span>
+      </a>
+
+      <nav class="tabs" aria-label="分析页面">
+        <button class="tab-button active" data-tab="overview" type="button">概览</button>
+        <button class="tab-button" data-tab="drivers" type="button">驱动因素</button>
+        <button class="tab-button" data-tab="events" type="button">风险事件</button>
+        <button class="tab-button" data-tab="data" type="button">数据明细</button>
+        <button class="tab-button" data-tab="history" type="button">历史验证</button>
+      </nav>
+
+      <div class="topbar-actions">
+        <span class="market-status"><i></i> 数据正常</span>
+        <button class="refresh-button" id="refreshButton" type="button" aria-label="更新今日分析">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5M18.3 9A7 7 0 0 0 6.6 6.6L4 9m16 6-2.6 2.4A7 7 0 0 1 5.7 15"/></svg>
+          <span>更新分析</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <section class="page active" data-page="overview">
+        <div class="overview-head">
+          <div class="market-quotes" id="marketQuotes">
+            <article class="quote active">
+              <div class="quote-name">
+                <span class="live-dot"></span>
+                <div>
+                  <p>XAU / USD <button class="info-button" type="button" title="国际现货黄金兑美元报价">i</button></p>
+                  <small>国际现货黄金 · <span id="session">亚洲时段</span></small>
+                </div>
+              </div>
+              <div class="ticker-price">
+                <strong id="price">3,347.60</strong>
+                <span>USD/OZ</span>
+                <em id="priceChange">+0.55%</em>
+              </div>
+            </article>
+          </div>
+          <div class="as-of">
+            <span>数据截止</span>
+            <strong id="marketAsOf">2026.06.12 09:25</strong>
+          </div>
+        </div>
+
+        <div class="overview-grid">
+          <article class="forecast-card glass-card">
+            <div class="card-label">
+              <span>AI MARKET OUTLOOK</span>
+              <b>规则模型 V1</b>
+            </div>
+            <div class="forecast-content">
+              <div class="score-orbit">
+                <svg viewBox="0 0 190 190" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="goldGradient" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#fff0a6"/>
+                      <stop offset="46%" stop-color="#f4bf4f"/>
+                      <stop offset="100%" stop-color="#a86e12"/>
+                    </linearGradient>
+                  </defs>
+                  <circle class="orbit-track" cx="95" cy="95" r="80"></circle>
+                  <circle class="orbit-value" cx="95" cy="95" r="80"></circle>
+                </svg>
+                <div class="orbit-core">
+                  <small>未来 <span id="horizon">1-5个交易日</span></small>
+                  <strong id="direction">谨慎偏多</strong>
+                  <span>综合分 <b id="score">+28</b></span>
+                </div>
+                <i class="orbit-spark"></i>
+              </div>
+
+              <div class="forecast-copy">
+                <div class="confidence-row">
+                  <div>
+                    <span>分析置信度</span>
+                    <strong><i id="confidence">67</i>%</strong>
+                  </div>
+                  <div class="confidence-track"><i id="confidenceBar"></i></div>
+                </div>
+                <p id="summary">资金流保持强势，实际利率回落提供支撑，但美元仍偏强，短线更可能震荡上行。</p>
+                <div class="range-row">
+                  <span>观察区间 · <i id="benchmarkName">COMEX基准</i></span>
+                  <strong id="expectedRange">$3,295 — $3,415</strong>
+                  <small>非目标价</small>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <aside class="signal-panel">
+            <div class="signal-heading">
+              <div>
+                <span>核心信号</span>
+                <h2>四因素评分</h2>
+              </div>
+              <button class="mini-link" data-jump="drivers" type="button">查看分析 →</button>
+            </div>
+            <div class="factor-grid" id="factorGrid"></div>
+            <div class="score-guide">
+              <div class="score-guide-head">
+                <span>综合分解释</span>
+                <strong>-100 到 +100</strong>
+              </div>
+              <div class="score-scale">
+                <i class="strong-bearish"></i>
+                <i class="bearish"></i>
+                <i class="neutral"></i>
+                <i class="bullish"></i>
+                <i class="strong-bullish"></i>
+                <b id="scoreMarker" style="left:64%"></b>
+              </div>
+              <div class="score-labels">
+                <span>明显偏空<br><b>-100~-40</b></span>
+                <span>谨慎偏空<br><b>-39~-15</b></span>
+                <span>震荡<br><b>-14~+14</b></span>
+                <span>谨慎偏多<br><b>+15~+39</b></span>
+                <span>明显偏多<br><b>+40~+100</b></span>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="bottom-grid">
+          <article class="reference-card glass-card">
+            <div class="compact-title">
+              <div>
+                <span>CROSS-MARKET CHECK</span>
+                <h2>双参考系</h2>
+              </div>
+              <b>未发现异常信号</b>
+            </div>
+            <div class="reference-list" id="referenceList"></div>
+          </article>
+
+          <article class="quality-card glass-card">
+            <div class="compact-title">
+              <div>
+                <span>DATA HEALTH</span>
+                <h2>数据质量</h2>
+              </div>
+              <button class="mini-link" data-jump="data" type="button">详情 →</button>
+            </div>
+            <div class="quality-body">
+              <div class="quality-number"><strong id="completeness">91%</strong><span>完整度</span></div>
+              <div class="quality-number"><strong id="freshness">88%</strong><span>新鲜度</span></div>
+              <p id="qualityMessage">核心数据完整，CFTC周度数据等待更新。</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" data-page="drivers">
+        <div class="page-heading">
+          <div>
+            <span>MARKET DRIVERS</span>
+            <h1>驱动因素分析</h1>
+            <p>拆解当前黄金判断背后的支持力量与反向压力。</p>
+          </div>
+          <div class="page-score">综合分 <strong id="driverPageScore">+28</strong></div>
+        </div>
+        <div class="insight-grid">
+          <article class="glass-card insight-card positive">
+            <div class="compact-title">
+              <div><span>BULLISH EVIDENCE</span><h2>主要支持</h2></div>
+              <b id="driverCount">03</b>
+            </div>
+            <div id="driverList" class="insight-list"></div>
+          </article>
+          <article class="glass-card insight-card negative">
+            <div class="compact-title">
+              <div><span>RISK FACTORS</span><h2>反向压力</h2></div>
+              <b id="riskCount">03</b>
+            </div>
+            <div id="riskList" class="insight-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" data-page="events">
+        <div class="page-heading">
+          <div>
+            <span>RISK CALENDAR</span>
+            <h1>风险事件窗口</h1>
+            <p>临近高影响事件时，系统会主动降低预测置信度。</p>
+          </div>
+          <span class="warning-pill">波动可能放大</span>
+        </div>
+        <div class="event-stage glass-card">
+          <div class="event-timeline" id="eventList"></div>
+        </div>
+      </section>
+
+      <section class="page" data-page="data">
+        <div class="page-heading">
+          <div>
+            <span>RAW SIGNALS</span>
+            <h1>原始指标与数据状态</h1>
+            <p>所有输入均展示来源时间和状态，缺失数据不会以零值替代。</p>
+          </div>
+          <div class="legend"><span><i class="ok"></i>正常</span><span><i class="delayed"></i>延迟</span></div>
+        </div>
+        <article class="glass-card indicator-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>指标</th>
+                  <th>最新值</th>
+                  <th>1日变化</th>
+                  <th>5日变化</th>
+                  <th>黄金信号</th>
+                  <th>更新时间</th>
+                  <th>状态</th>
+                </tr>
+              </thead>
+              <tbody id="indicatorRows"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section class="page" data-page="history">
+        <div class="page-heading history-heading">
+          <div>
+            <span>FORECAST VALIDATION</span>
+            <h1>历史预测验证</h1>
+            <p>使用预测周期结束时的真实收盘结果，持续检验系统是否具备实用价值。</p>
+          </div>
+          <div class="validation-status"><i></i> 本地记录持续更新</div>
+        </div>
+
+        <div class="validation-stats">
+          <article class="glass-card accuracy-card">
+            <div class="accuracy-ring" id="accuracyRing">
+              <div><strong id="directionAccuracy">—</strong><span>方向准确率</span></div>
+            </div>
+            <p id="accuracyConclusion">等待历史记录</p>
+          </article>
+          <article class="glass-card stat-card">
+            <span>区间命中率</span>
+            <strong id="rangeAccuracy">—</strong>
+            <small>实际收盘落在预测区间</small>
+          </article>
+          <article class="glass-card stat-card">
+            <span>已验证预测</span>
+            <strong id="evaluatedCount">0</strong>
+            <small>不包含尚未到期记录</small>
+          </article>
+          <article class="glass-card stat-card">
+            <span>等待验证</span>
+            <strong id="pendingCount">0</strong>
+            <small>到达评价日后更新结果</small>
+          </article>
+        </div>
+
+        <div class="validation-grid">
+          <article class="glass-card performance-card">
+            <div class="compact-title">
+              <div><span>RECENT PERFORMANCE</span><h2>最近预测表现</h2></div>
+              <b id="recentPerformanceLabel">近7次</b>
+            </div>
+            <div class="performance-strip" id="performanceStrip"></div>
+            <div class="performance-legend">
+              <span><i class="hit"></i>方向命中</span>
+              <span><i class="miss"></i>方向未命中</span>
+              <span><i class="pending"></i>等待验证</span>
+            </div>
+          </article>
+
+          <article class="glass-card rule-card">
+            <div class="compact-title">
+              <div><span>EVALUATION RULE</span><h2>如何判断准确</h2></div>
+            </div>
+            <p id="evaluationDescription"></p>
+            <div class="rule-scale">
+              <div class="down"><strong>下跌</strong><span>≤ -0.5%</span></div>
+              <div class="flat"><strong>震荡</strong><span>-0.5% ~ +0.5%</span></div>
+              <div class="up"><strong>上涨</strong><span>≥ +0.5%</span></div>
+            </div>
+          </article>
+        </div>
+
+        <article class="glass-card history-card">
+          <div class="history-toolbar">
+            <div>
+              <span>VALIDATION LOG</span>
+              <h2>预测记录</h2>
+            </div>
+            <div class="history-filters" aria-label="历史记录筛选">
+              <button class="history-filter active" data-history-filter="all" type="button">全部</button>
+              <button class="history-filter" data-history-filter="hit" type="button">命中</button>
+              <button class="history-filter" data-history-filter="miss" type="button">未命中</button>
+              <button class="history-filter" data-history-filter="pending" type="button">待验证</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>预测日</th>
+                  <th>预测结果</th>
+                  <th>评分 / 置信度</th>
+                  <th>起始价</th>
+                  <th>评价日收盘</th>
+                  <th>实际表现</th>
+                  <th>区间</th>
+                  <th>结论</th>
+                </tr>
+              </thead>
+              <tbody id="historyRows"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <footer>
+        <p id="disclaimer">本页面仅用于市场研究与信息整理，不构成投资建议或收益承诺。</p>
+        <span>PROTOTYPE · SCHEMA 1.0.0</span>
+      </footer>
+    </main>
+
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <aside class="reference-drawer" id="referenceDrawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <span>CROSS-MARKET DETAIL</span>
+          <h2 id="drawerTitle">大宗商品参考系</h2>
+        </div>
+        <button class="drawer-close" id="drawerClose" type="button" aria-label="关闭详情">×</button>
+      </div>
+      <div class="drawer-summary">
+        <div><span>当前信号</span><strong id="drawerSignal">偏多</strong></div>
+        <div><span>一致度</span><strong id="drawerAgreement">74%</strong></div>
+        <p id="drawerSummary"></p>
+      </div>
+      <section class="drawer-section">
+        <div class="drawer-section-title"><span>最新走势</span><small>1日 / 5日</small></div>
+        <div class="component-list" id="drawerComponents"></div>
+      </section>
+      <section class="drawer-section">
+        <div class="drawer-section-title"><span>事件与报道</span><small>最新</small></div>
+        <div class="update-list" id="drawerUpdates"></div>
+      </section>
+      <p class="drawer-note">当前为页面原型数据，真实版本将显示数据来源及原文链接。</p>
+    </aside>
+
+    <div class="toast" id="toast" role="status">原型数据已更新</div>
+    <script src="./app.js"></script>
+  </body>
+</html>

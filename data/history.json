@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "records": [
+    {
+      "id": "forecast-2026-06-12",
+      "forecast_date": "2026-06-12",
+      "evaluation_date": "2026-06-19",
+      "horizon": "未来5个交易日",
+      "prediction": {
+        "direction": "震荡",
+        "direction_group": "neutral",
+        "score": 2,
+        "confidence": 41,
+        "start_price": 4217.7,
+        "range_low": 4047.79,
+        "range_high": 4387.61,
+        "benchmark_symbol": "COMEX GC",
+        "benchmark_name": "COMEX黄金期货"
+      },
+      "outcome": {
+        "status": "pending",
+        "close_price": null,
+        "return_percent": null,
+        "actual_direction": "等待收盘",
+        "actual_direction_group": null,
+        "direction_hit": null,
+        "range_hit": null
+      },
+      "model_version": "rules-v1.0.0"
+    }
+  ]
+}

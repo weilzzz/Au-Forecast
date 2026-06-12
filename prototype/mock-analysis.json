@@ -1,0 +1,585 @@
+{
+  "schema_version": "1.0.0",
+  "analysis_id": "gold-2026-06-12T09:30:00+08:00",
+  "generated_at": "2026-06-12T09:30:00+08:00",
+  "market_as_of": "2026-06-12T09:25:00+08:00",
+  "timezone": "Asia/Shanghai",
+  "instrument": {
+    "symbol": "XAUUSD",
+    "name": "国际现货黄金",
+    "currency": "USD",
+    "price": 3347.6,
+    "change": 18.4,
+    "change_percent": 0.55,
+    "session": "亚洲时段"
+  },
+  "market_quotes": [
+    {
+      "symbol": "XAUUSD",
+      "name": "国际现货黄金",
+      "description": "全球场外现货黄金兑美元报价",
+      "price": 3347.6,
+      "unit": "USD/oz",
+      "change_percent": 0.55,
+      "updated_at": "2026-06-12T09:25:00+08:00"
+    },
+    {
+      "symbol": "COMEX GC",
+      "name": "COMEX黄金期货",
+      "description": "纽约商品交易所黄金主力期货合约",
+      "contract": "GC主力",
+      "price": 3363.2,
+      "unit": "USD/oz",
+      "change_percent": 0.62,
+      "basis": 15.6,
+      "updated_at": "2026-06-12T09:25:00+08:00"
+    }
+  ],
+  "forecast": {
+    "horizon": "1-5个交易日",
+    "direction": "谨慎偏多",
+    "direction_code": "cautiously_bullish",
+    "score": 28,
+    "confidence": 67,
+    "summary": "资金流保持强势，实际利率回落提供支撑，但美元仍偏强，短线更可能震荡上行。",
+    "expected_range": {
+      "low": 3295,
+      "high": 3415,
+      "unit": "USD/oz"
+    }
+  },
+  "factors": [
+    {
+      "id": "fed",
+      "name": "美联储与利率",
+      "weight": 50,
+      "score": 8,
+      "signal": "轻微偏多",
+      "signal_code": "slightly_bullish",
+      "summary": "实际利率回落，但美元指数仍处强势区间。",
+      "data_completeness": 100
+    },
+    {
+      "id": "stocks",
+      "name": "美股与风险偏好",
+      "weight": 10,
+      "score": -3,
+      "signal": "轻微偏空",
+      "signal_code": "slightly_bearish",
+      "summary": "美股上涨、VIX回落，避险需求有所减弱。",
+      "data_completeness": 100
+    },
+    {
+      "id": "fund_flow",
+      "name": "ETF与期货资金流",
+      "weight": 30,
+      "score": 17,
+      "signal": "偏多",
+      "signal_code": "bullish",
+      "summary": "GLD量价同步走强，黄金期货维持上升趋势。",
+      "data_completeness": 86
+    },
+    {
+      "id": "central_bank",
+      "name": "全球央行购金",
+      "weight": 10,
+      "score": 6,
+      "signal": "偏多",
+      "signal_code": "bullish",
+      "summary": "全球央行整体保持净购金，形成中长期支撑。",
+      "data_completeness": 100
+    }
+  ],
+  "reference_systems": [
+    {
+      "id": "commodities",
+      "name": "大宗商品参考系",
+      "signal": "偏多",
+      "signal_code": "bullish",
+      "agreement": 74,
+      "relationship": "同步",
+      "abnormal": false,
+      "summary": "白银与铜上涨，原油震荡，商品环境对黄金形成温和支持。",
+      "components": [
+        {
+          "symbol": "WTI",
+          "name": "WTI原油",
+          "value": 76.42,
+          "unit": "USD/bbl",
+          "change_1d": -0.18,
+          "change_5d": 1.24,
+          "trend": "震荡"
+        },
+        {
+          "symbol": "XAGUSD",
+          "name": "现货白银",
+          "value": 37.16,
+          "unit": "USD/oz",
+          "change_1d": 1.12,
+          "change_5d": 3.48,
+          "trend": "上涨"
+        },
+        {
+          "symbol": "COPPER",
+          "name": "COMEX铜",
+          "value": 4.91,
+          "unit": "USD/lb",
+          "change_1d": 0.74,
+          "change_5d": 2.16,
+          "trend": "上涨"
+        }
+      ],
+      "updates": [
+        {
+          "type": "event",
+          "title": "美国原油库存周报临近",
+          "summary": "库存变化可能影响能源价格与通胀预期。",
+          "published_at": "2026-06-12T08:40:00+08:00",
+          "source_name": "市场事件日历"
+        },
+        {
+          "type": "news",
+          "title": "白银与工业金属同步走强",
+          "summary": "贵金属与工业需求预期共同改善，商品广度保持偏多。",
+          "published_at": "2026-06-12T07:50:00+08:00",
+          "source_name": "市场摘要"
+        }
+      ]
+    },
+    {
+      "id": "currencies",
+      "name": "主要货币参考系",
+      "signal": "中性",
+      "signal_code": "neutral",
+      "agreement": 52,
+      "relationship": "轻微背离",
+      "abnormal": false,
+      "summary": "非美元货币表现分化，暂未形成一致方向。",
+      "components": [
+        {
+          "symbol": "EURUSD",
+          "name": "欧元/美元",
+          "value": 1.0842,
+          "unit": "",
+          "change_1d": 0.21,
+          "change_5d": 0.46,
+          "trend": "欧元走强"
+        },
+        {
+          "symbol": "GBPUSD",
+          "name": "英镑/美元",
+          "value": 1.2786,
+          "unit": "",
+          "change_1d": -0.08,
+          "change_5d": 0.12,
+          "trend": "震荡"
+        },
+        {
+          "symbol": "USDJPY",
+          "name": "美元/日元",
+          "value": 146.82,
+          "unit": "",
+          "change_1d": 0.36,
+          "change_5d": 1.18,
+          "trend": "日元走弱"
+        },
+        {
+          "symbol": "AUDUSD",
+          "name": "澳元/美元",
+          "value": 0.6541,
+          "unit": "",
+          "change_1d": 0.14,
+          "change_5d": 0.58,
+          "trend": "澳元走强"
+        },
+        {
+          "symbol": "USDCAD",
+          "name": "美元/加元",
+          "value": 1.3628,
+          "unit": "",
+          "change_1d": -0.12,
+          "change_5d": -0.32,
+          "trend": "加元走强"
+        }
+      ],
+      "updates": [
+        {
+          "type": "event",
+          "title": "日本央行政策预期升温",
+          "summary": "日元波动可能改变美元强弱与黄金的短线关系。",
+          "published_at": "2026-06-12T08:10:00+08:00",
+          "source_name": "市场事件日历"
+        },
+        {
+          "type": "news",
+          "title": "非美元货币走势分化",
+          "summary": "欧元和商品货币走强，但日元偏弱，货币篮子尚未形成共振。",
+          "published_at": "2026-06-12T07:35:00+08:00",
+          "source_name": "市场摘要"
+        }
+      ]
+    }
+  ],
+  "drivers": [
+    {
+      "title": "实际利率回落",
+      "detail": "10年期实际利率近5日下行，对无息资产黄金形成支撑。",
+      "impact": 15,
+      "factor_id": "fed"
+    },
+    {
+      "title": "黄金资金流偏强",
+      "detail": "GLD价格与成交量同步改善，期货趋势保持向上。",
+      "impact": 17,
+      "factor_id": "fund_flow"
+    },
+    {
+      "title": "商品市场多数走强",
+      "detail": "白银与铜的同步上涨提高了当前涨势的可信度。",
+      "impact": 6,
+      "factor_id": "commodities"
+    }
+  ],
+  "risks": [
+    {
+      "title": "美元仍处强势区间",
+      "detail": "若美元指数继续上行，可能压缩黄金反弹空间。",
+      "severity": "medium"
+    },
+    {
+      "title": "美国风险资产表现强劲",
+      "detail": "美股持续上涨可能继续吸收部分避险与投机资金。",
+      "severity": "low"
+    },
+    {
+      "title": "重要数据临近",
+      "detail": "下一项美国通胀数据可能显著改变利率预期。",
+      "severity": "high"
+    }
+  ],
+  "events": [
+    {
+      "name": "美国CPI",
+      "scheduled_at": "2026-06-15T20:30:00+08:00",
+      "importance": "high",
+      "expected_effect": "波动可能放大"
+    },
+    {
+      "name": "FOMC利率决议",
+      "scheduled_at": "2026-06-18T02:00:00+08:00",
+      "importance": "high",
+      "expected_effect": "决定短期利率方向"
+    }
+  ],
+  "indicators": [
+    {
+      "id": "xauusd",
+      "name": "现货黄金",
+      "group": "market",
+      "value": 3347.6,
+      "unit": "USD/oz",
+      "change_1d": 0.55,
+      "change_5d": 1.84,
+      "signal": "偏多",
+      "updated_at": "2026-06-12T09:25:00+08:00",
+      "source_name": "市场行情源",
+      "source_url": "https://example.com",
+      "status": "ok"
+    },
+    {
+      "id": "dfii10",
+      "name": "10年期实际利率",
+      "group": "fed",
+      "value": 1.91,
+      "unit": "%",
+      "change_1d": -0.03,
+      "change_5d": -0.09,
+      "signal": "利多黄金",
+      "updated_at": "2026-06-11",
+      "source_name": "FRED",
+      "source_url": "https://fred.stlouisfed.org/series/DFII10",
+      "status": "ok"
+    },
+    {
+      "id": "dgs10",
+      "name": "10年期美债收益率",
+      "group": "fed",
+      "value": 4.31,
+      "unit": "%",
+      "change_1d": -0.02,
+      "change_5d": -0.06,
+      "signal": "轻微利多",
+      "updated_at": "2026-06-11",
+      "source_name": "FRED",
+      "source_url": "https://fred.stlouisfed.org/series/DGS10",
+      "status": "ok"
+    },
+    {
+      "id": "dxy",
+      "name": "美元指数",
+      "group": "fed",
+      "value": 103.42,
+      "unit": "",
+      "change_1d": 0.18,
+      "change_5d": 0.64,
+      "signal": "利空黄金",
+      "updated_at": "2026-06-12T09:20:00+08:00",
+      "source_name": "市场行情源",
+      "source_url": "https://example.com",
+      "status": "ok"
+    },
+    {
+      "id": "vix",
+      "name": "VIX",
+      "group": "stocks",
+      "value": 15.8,
+      "unit": "",
+      "change_1d": -2.4,
+      "change_5d": -5.2,
+      "signal": "利空黄金",
+      "updated_at": "2026-06-11",
+      "source_name": "FRED",
+      "source_url": "https://fred.stlouisfed.org/series/VIXCLS",
+      "status": "ok"
+    },
+    {
+      "id": "gld",
+      "name": "GLD ETF",
+      "group": "fund_flow",
+      "value": 308.16,
+      "unit": "USD",
+      "change_1d": 0.72,
+      "change_5d": 2.08,
+      "signal": "利多黄金",
+      "updated_at": "2026-06-11",
+      "source_name": "市场行情源",
+      "source_url": "https://example.com",
+      "status": "ok"
+    },
+    {
+      "id": "cftc_net",
+      "name": "CFTC管理资金净多仓",
+      "group": "fund_flow",
+      "value": null,
+      "unit": "contracts",
+      "change_1d": null,
+      "change_5d": null,
+      "signal": "等待更新",
+      "updated_at": null,
+      "source_name": "CFTC",
+      "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm",
+      "status": "delayed"
+    }
+  ],
+  "data_quality": {
+    "completeness": 91,
+    "freshness": 88,
+    "missing_count": 1,
+    "delayed_count": 1,
+    "status": "good",
+    "message": "核心数据完整，CFTC周度数据等待更新。"
+  },
+  "validation_history": {
+    "evaluation_rule": {
+      "horizon_trading_days": 5,
+      "bullish_threshold": 0.5,
+      "bearish_threshold": -0.5,
+      "description": "使用预测后第5个交易日收盘价验证；收益率≥+0.5%为上涨，≤-0.5%为下跌，其余为震荡。"
+    },
+    "records": [
+      {
+        "id": "forecast-2026-05-26",
+        "forecast_date": "2026-05-26",
+        "evaluation_date": "2026-06-02",
+        "horizon": "5个交易日",
+        "prediction": {
+          "direction": "谨慎偏多",
+          "direction_group": "bullish",
+          "score": 24,
+          "confidence": 65,
+          "start_price": 3310.2,
+          "range_low": 3280,
+          "range_high": 3365
+        },
+        "outcome": {
+          "status": "evaluated",
+          "close_price": 3342.4,
+          "return_percent": 0.97,
+          "actual_direction": "上涨",
+          "actual_direction_group": "bullish",
+          "direction_hit": true,
+          "range_hit": true
+        }
+      },
+      {
+        "id": "forecast-2026-05-27",
+        "forecast_date": "2026-05-27",
+        "evaluation_date": "2026-06-03",
+        "horizon": "5个交易日",
+        "prediction": {
+          "direction": "震荡",
+          "direction_group": "neutral",
+          "score": 8,
+          "confidence": 58,
+          "start_price": 3320.1,
+          "range_low": 3290,
+          "range_high": 3360
+        },
+        "outcome": {
+          "status": "evaluated",
+          "close_price": 3334.0,
+          "return_percent": 0.42,
+          "actual_direction": "震荡",
+          "actual_direction_group": "neutral",
+          "direction_hit": true,
+          "range_hit": true
+        }
+      },
+      {
+        "id": "forecast-2026-05-28",
+        "forecast_date": "2026-05-28",
+        "evaluation_date": "2026-06-04",
+        "horizon": "5个交易日",
+        "prediction": {
+          "direction": "谨慎偏空",
+          "direction_group": "bearish",
+          "score": -18,
+          "confidence": 61,
+          "start_price": 3331.0,
+          "range_low": 3285,
+          "range_high": 3350
+        },
+        "outcome": {
+          "status": "evaluated",
+          "close_price": 3312.0,
+          "return_percent": -0.57,
+          "actual_direction": "下跌",
+          "actual_direction_group": "bearish",
+          "direction_hit": true,
+          "range_hit": true
+        }
+      },
+      {
+        "id": "forecast-2026-05-29",
+        "forecast_date": "2026-05-29",
+        "evaluation_date": "2026-06-05",
+        "horizon": "5个交易日",
+        "prediction": {
+          "direction": "谨慎偏多",
+          "direction_group": "bullish",
+          "score": 31,
+          "confidence": 70,
+          "start_price": 3318.0,
+          "range_low": 3300,
+          "range_high": 3375
+        },
+        "outcome": {
+          "status": "evaluated",
+          "close_price": 3340.0,
+          "return_percent": 0.66,
+          "actual_direction": "上涨",
+          "actual_direction_group": "bullish",
+          "direction_hit": true,
+          "range_hit": true
+        }
+      },
+      {
+        "id": "forecast-2026-06-01",
+        "forecast_date": "2026-06-01",
+        "evaluation_date": "2026-06-08",
+        "horizon": "5个交易日",
+        "prediction": {
+          "direction": "谨慎偏空",
+          "direction_group": "bearish",
+          "score": -22,
+          "confidence": 64,
+          "start_price": 3338.0,
+          "range_low": 3280,
+          "range_high": 3355
+        },
+        "outcome": {
+          "status": "evaluated",
+          "close_price": 3362.0,
+          "return_percent": 0.72,
+          "actual_direction": "上涨",
+          "actual_direction_group": "bullish",
+          "direction_hit": false,
+          "range_hit": false
+        }
+      },
+      {
+        "id": "forecast-2026-06-02",
+        "forecast_date": "2026-06-02",
+        "evaluation_date": "2026-06-09",
+        "horizon": "5个交易日",
+        "prediction": {
+          "direction": "震荡",
+          "direction_group": "neutral",
+          "score": 4,
+          "confidence": 55,
+          "start_price": 3355.0,
+          "range_low": 3315,
+          "range_high": 3385
+        },
+        "outcome": {
+          "status": "evaluated",
+          "close_price": 3349.0,
+          "return_percent": -0.18,
+          "actual_direction": "震荡",
+          "actual_direction_group": "neutral",
+          "direction_hit": true,
+          "range_hit": true
+        }
+      },
+      {
+        "id": "forecast-2026-06-03",
+        "forecast_date": "2026-06-03",
+        "evaluation_date": "2026-06-10",
+        "horizon": "5个交易日",
+        "prediction": {
+          "direction": "谨慎偏多",
+          "direction_group": "bullish",
+          "score": 19,
+          "confidence": 62,
+          "start_price": 3344.0,
+          "range_low": 3320,
+          "range_high": 3390
+        },
+        "outcome": {
+          "status": "evaluated",
+          "close_price": 3322.0,
+          "return_percent": -0.66,
+          "actual_direction": "下跌",
+          "actual_direction_group": "bearish",
+          "direction_hit": false,
+          "range_hit": true
+        }
+      },
+      {
+        "id": "forecast-2026-06-05",
+        "forecast_date": "2026-06-05",
+        "evaluation_date": "2026-06-12",
+        "horizon": "5个交易日",
+        "prediction": {
+          "direction": "谨慎偏多",
+          "direction_group": "bullish",
+          "score": 26,
+          "confidence": 66,
+          "start_price": 3339.0,
+          "range_low": 3310,
+          "range_high": 3400
+        },
+        "outcome": {
+          "status": "pending",
+          "close_price": null,
+          "return_percent": null,
+          "actual_direction": "等待收盘",
+          "actual_direction_group": null,
+          "direction_hit": null,
+          "range_hit": null
+        }
+      }
+    ]
+  },
+  "disclaimer": "本页面仅用于市场研究与信息整理，不构成投资建议或收益承诺。"
+}

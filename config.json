@@ -1,0 +1,18 @@
+{
+  "timezone": "Asia/Shanghai",
+  "forecast_horizon_trading_days": 5,
+  "history_enabled": true,
+  "central_bank": {
+    "score": 6,
+    "status": "偏多",
+    "updated_at": "2026-06-01",
+    "note": "全球央行整体保持净购金。该项为月度人工配置，后续接入公开月报。"
+  },
+  "fed_policy": {
+    "score": -2,
+    "status": "轻微偏空",
+    "updated_at": "2026-06-01",
+    "note": "政策倾向为人工配置，仅占美联储因素5分。"
+  },
+  "events": []
+}
